@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>9:16 Puzzle Video Maker</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app"><header><h1>🧩 9:16 Puzzle Video Maker</h1><p>Upload → Split → Animate → Match → Export</p></header>
+<div class="main">
+<aside class="panel"><h2>SETUP PANEL</h2>
+<div class="section"><label>Background (9:16)</label><input type="file" id="backgroundInput" accept="image/*"></div>
+<div class="section"><label>Letter / Object PNGs</label><div class="upload-grid">
+<div class="upload-card"><strong>A</strong><div class="thumb"><img id="thumbA"></div><input type="file" id="inputA" accept="image/png"></div>
+<div class="upload-card"><strong>B</strong><div class="thumb"><img id="thumbB"></div><input type="file" id="inputB" accept="image/png"></div>
+<div class="upload-card"><strong>C</strong><div class="thumb"><img id="thumbC"></div><input type="file" id="inputC" accept="image/png"></div>
+<div class="upload-card"><strong>D</strong><div class="thumb"><img id="thumbD"></div><input type="file" id="inputD" accept="image/png"></div>
+</div></div>
+<div class="section"><label>Split Percentage</label><div class="range-line"><input type="range" id="splitRange" min="30" max="50" value="50"><div class="value"><span id="splitValue">50</span>%</div></div><small>Left portion stays fixed. Right portion becomes the moving piece.</small></div>
+<div class="section"><label>Image Size</label><div class="range-line"><input type="range" id="sizeRange" min="280" max="430" value="360"><div class="value"><span id="sizeValue">360</span></div></div></div>
+<div class="section"><div class="row"><div><label>Animation Duration</label><input type="number" id="duration" value="800" min="100" max="5000"></div><div><label>Result Pause</label><input type="number" id="pauseDuration" value="600" min="0" max="5000"></div></div></div>
+<div class="section"><label>Animation Order</label><input type="text" id="animationOrder" value="C,B,A,D"><small>Uploaded letters missing here are automatically appended.</small></div>
+<div class="section"><label>Target Checking Order</label><input type="text" id="targetOrder" value="A,B,C,D"></div>
+<div class="section"><label>Moving Direction</label><select id="direction"><option value="top-right">Top Right → Target</option><option value="top">Top → Target</option><option value="right">Right → Target</option><option value="left">Left → Target</option></select></div>
+<div class="section"><button class="primary" id="previewBtn">▶ PREVIEW ANIMATION</button><button class="dark" id="resetBtn">↻ RESET</button></div>
+</aside>
+<main class="preview-column"><div class="phone"><canvas id="canvas" width="1080" height="1920"></canvas></div><div class="preview-controls"><button class="dark" id="playBtn">▶ Play</button><button class="dark" id="pauseBtn">⏸ Pause</button><button class="dark" id="restartBtn">↻ Restart</button></div></main>
+<aside class="panel"><h2>PUZZLE RULES</h2><div class="hint">Click a cell to switch WRONG / RIGHT.</div><div id="rulesContainer"></div>
+<div class="section"><h2>ICONS & SOUNDS</h2><div class="row"><div><label>Wrong Icon</label><input type="file" id="wrongIcon" accept="image/*"></div><div><label>Right Icon</label><input type="file" id="rightIcon" accept="image/*"></div></div><div class="mt"><label>Wrong Sound</label><input type="file" id="wrongSound" accept="audio/*"></div><div class="mt"><label>Right Sound</label><input type="file" id="rightSound" accept="audio/*"></div></div>
+<div class="section"><h2>ANIMATION FLOW</h2><div class="flow" id="flowContainer"></div></div>
+<div class="section"><h2>STATUS</h2><div class="status-box"><div class="status-title" id="statusTitle">Ready</div><div class="status-message" id="statusMessage">Upload images and press Preview.</div><div class="big-status" id="bigStatus"></div></div></div>
+<div class="section"><h2>EXPORT VIDEO</h2><label>Resolution</label><select id="resolution"><option value="1080x1920">1080 × 1920 (9:16)</option><option value="720x1280">720 × 1280 (9:16)</option></select><button class="green" id="exportBtn">⬇ EXPORT VIDEO</button><div class="progress"><div class="progress-bar" id="progressBar"></div></div><div id="exportStatus" class="export-status"></div></div>
+</aside></div></div><script src="script.js"></script>
+</body></html>
