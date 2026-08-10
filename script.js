@@ -2445,158 +2445,182 @@ async function convertToMP4(
 
 }
 
-
-/* ============================================================
-   EXPORT BUTTON
-============================================================ */
-
+/* ---------- EXPORT WITH FIXED ICONS + SOUNDS ---------- */
 async function exportVideo() {
+  if (animationRunning) return alert("Wait until animation finishes.");
+  if (!background) return alert("Upload background first.");
 
-  if (running) {
+  const available=["A","B","C","D"].filter(k=>letters[k].image);
+  if (!available.length) return alert("Upload PNG images first.");
 
-    alert(
-      "Pehle current animation complete hone do."
-    );
+  const status=document.getElementById("exportStatus");
+  const progress=document.getElementById("progressBar");
+  status.textContent="Rendering video...";
+  progress.style.width="0%";
 
-    return;
+  const exportCanvas=document.createElement("canvas");
+  exportCanvas.width=W; exportCanvas.height=H;
+  const ec=exportCanvas.getContext("2d");
 
-  }
+  const stream=exportCanvas.captureStream(30);
 
-
-  if (!backgroundImage) {
-
-    alert(
-      "Background upload karo."
-    );
-
-    return;
-
-  }
-
-
-  if (
-    !getUploadedLetters().length
-  ) {
-
-    alert(
-      "PNG images upload karo."
-    );
-
-    return;
-
-  }
-
-
-  const button =
-    document.getElementById(
-      "exportBtn"
-    );
-
-
-  button.disabled = true;
-
-  button.textContent =
-    "Recording...";
-
-
-  document.getElementById(
-    "exportStatus"
-  ).textContent =
-    "Recording puzzle...";
-
+  /* Audio is routed into the MediaRecorder stream. */
+  const AC=window.AudioContext||window.webkitAudioContext;
+  const audioContext=new AC();
+  const destination=audioContext.createMediaStreamDestination();
 
   try {
+    const ws=audioContext.createMediaElementSource(wrongAudio);
+    ws.connect(destination);
+    ws.connect(audioContext.destination);
+  } catch(e) { console.log(e); }
 
-    /*
-      User interaction ke andar
-      audio unlock
-    */
+  try {
+    const rs=audioContext.createMediaElementSource(rightAudio);
+    rs.connect(destination);
+    rs.connect(audioContext.destination);
+  } catch(e) { console.log(e); }
 
-    await rightSound.play()
-      .then(() => {
+  destination.stream.getAudioTracks().forEach(t=>stream.addTrack(t));
 
-        rightSound.pause();
+  let mime="video/webm;codecs=vp9,opus";
+  if (!MediaRecorder.isTypeSupported(mime)) mime="video/webm;codecs=vp8,opus";
+  if (!MediaRecorder.isTypeSupported(mime)) mime="video/webm";
 
-        rightSound.currentTime = 0;
+  const recorder=new MediaRecorder(stream,{
+    mimeType:mime,
+    videoBitsPerSecond:8000000,
+    audioBitsPerSecond:128000
+  });
 
-      })
-      .catch(() => {});
+  const chunks=[];
+  recorder.ondataavailable=e=>{ if(e.data?.size) chunks.push(e.data); };
+  const stopped=new Promise(resolve=>recorder.onstop=resolve);
+  recorder.start(100);
 
+  for (const k of Object.keys(letters)) letters[k].fixed=false;
+  currentAnimation=null;
 
-    await wrongSound.play()
-      .then(() => {
+  function exportFrame() {
+    drawBackground(ec);
+    drawLetters(ec);
 
-        wrongSound.pause();
-
-        wrongSound.currentTime = 0;
-
-      })
-      .catch(() => {});
-
-
-    /*
-      Record
-    */
-
-    const webmBlob =
-      await recordPuzzleVideo();
-
-
-    button.textContent =
-      "Converting MP4...";
-
-
-    /*
-      Convert
-    */
-
-    await convertToMP4(
-      webmBlob
-    );
-
-
-    updateStatus(
-      "Video Ready",
-      "MP4 export complete."
-    );
-
+    if (currentAnimation) {
+      drawMovingHalf(currentAnimation.source,currentAnimation.x,currentAnimation.y,ec);
+      if (currentAnimation.result) {
+        drawResultIcon(
+          currentAnimation.result==="right"?rightIcon:wrongIcon,
+          currentAnimation.result==="right",
+          currentAnimation.iconX,
+          currentAnimation.iconY,
+          ec
+        );
+      }
+    }
   }
 
-  catch (error) {
+  const FPS=30;
+  const moveDuration=Number(document.getElementById("duration").value)||1500;
+  const holdDuration=Number(document.getElementById("pauseDuration").value)||1000;
 
-    console.error(error);
+  async function move(source,target,reverse=false) {
+    const a=reverse?getTargetPosition(target):getStartPosition(source);
+    const b=reverse?getStartPosition(source):getTargetPosition(target);
+    const frames=Math.max(1,Math.round(moveDuration/1000*FPS));
 
-
-    document.getElementById(
-      "exportStatus"
-    ).textContent =
-      "MP4 export failed: " +
-      error.message;
-
-
-    alert(
-      "MP4 export me error aaya. Browser console check karo."
-    );
-
+    for(let i=0;i<=frames;i++){
+      const t=easeInOut(i/frames);
+      currentAnimation={
+        source,target,
+        x:a.x+(b.x-a.x)*t,
+        y:a.y+(b.y-a.y)*t,
+        result:null,iconX:0,iconY:0
+      };
+      exportFrame();
+      await sleep(1000/FPS);
+    }
   }
 
-  finally {
+  async function result(source,target,correct) {
+    const img=letters[target].image;
+    const size=getImageDrawSize(img);
+    const pos=getSlotPosition(target);
 
-    button.disabled =
-      false;
+    currentAnimation.result=correct?"right":"wrong";
+    currentAnimation.iconX=pos.x+size.width+130;
+    currentAnimation.iconY=pos.y+size.height/2;
 
+    const audio=correct?rightAudio:wrongAudio;
 
-    button.textContent =
-      "⬇ Export MP4";
+    try {
+      await audioContext.resume();
+      audio.currentTime=0;
+      await audio.play();
+    } catch(e) { console.log("Export sound:",e); }
 
+    const frames=Math.max(1,Math.round(holdDuration/1000*FPS));
+    for(let i=0;i<frames;i++){
+      exportFrame();
+      await sleep(1000/FPS);
+    }
+
+    currentAnimation.result=null;
+    exportFrame();
   }
 
+  const order=getCompleteAnimationOrder();
+  let done=0;
+  const total=Math.max(1,order.length*3);
+
+  for(const source of order){
+    if(!letters[source].image || letters[source].fixed) continue;
+
+    for(const target of getOrder("targetOrder")){
+      if(letters[target].fixed) continue;
+
+      await move(source,target,false);
+      const correct=isCorrect(source,target);
+      await result(source,target,correct);
+
+      if(correct){
+        letters[source].fixed=true;
+        currentAnimation=null;
+        exportFrame();
+        break;
+      }
+
+      await move(source,target,true);
+      done++;
+      progress.style.width=Math.min(100,done/total*100)+"%";
+    }
+  }
+
+  currentAnimation=null;
+  exportFrame();
+  await sleep(1000);
+
+  recorder.stop();
+  await stopped;
+
+  try { await audioContext.close(); } catch(e){}
+
+  const blob=new Blob(chunks,{type:mime});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="puzzle-video.webm";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+
+  progress.style.width="100%";
+  status.textContent="Video exported successfully.";
 }
 
-/* ============================================================
-   INITIALIZE
-============================================================ */
+document.getElementById("exportBtn").addEventListener("click",exportVideo);
 
 createRulesUI();
-
+createFlow();
 draw();
