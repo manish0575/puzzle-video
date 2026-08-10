@@ -2,19 +2,28 @@
    HALF MATCH PUZZLE
    SERIES: D → C → B → A
 
+   EXPORT:
+   Normal browser MediaRecorder
+   Final file: puzzle-video.webm
+
    FIXED ASSETS:
 
    assets/right.png
    assets/wrong.png
-
    assets/right.mp3
    assets/wrong.mp3
 ============================================================ */
 
 
-const canvas = document.getElementById("canvas");
+/* ============================================================
+   CANVAS
+============================================================ */
 
-const ctx = canvas.getContext("2d");
+const canvas =
+  document.getElementById("canvas");
+
+const ctx =
+  canvas.getContext("2d");
 
 const WIDTH = 1080;
 
@@ -25,28 +34,26 @@ const HEIGHT = 1920;
    FIXED ASSETS
 ============================================================ */
 
-const RIGHT_ICON_PATH = "assets/right.png";
+const rightIcon =
+  new Image();
 
-const WRONG_ICON_PATH = "assets/wrong.png";
-
-const RIGHT_SOUND_PATH = "assets/right.mp3";
-
-const WRONG_SOUND_PATH = "assets/wrong.mp3";
+rightIcon.src =
+  "assets/right.png";
 
 
-const rightIcon = new Image();
+const wrongIcon =
+  new Image();
 
-rightIcon.src = RIGHT_ICON_PATH;
-
-
-const wrongIcon = new Image();
-
-wrongIcon.src = WRONG_ICON_PATH;
+wrongIcon.src =
+  "assets/wrong.png";
 
 
-const rightSound = new Audio(RIGHT_SOUND_PATH);
+const rightSound =
+  new Audio("assets/right.mp3");
 
-const wrongSound = new Audio(WRONG_SOUND_PATH);
+
+const wrongSound =
+  new Audio("assets/wrong.mp3");
 
 
 rightSound.preload = "auto";
@@ -55,7 +62,7 @@ wrongSound.preload = "auto";
 
 
 /* ============================================================
-   IMAGE DATA
+   IMAGES
 ============================================================ */
 
 const pieces = {
@@ -83,10 +90,6 @@ const pieces = {
 };
 
 
-/* ============================================================
-   BACKGROUND
-============================================================ */
-
 let backgroundImage = null;
 
 
@@ -96,22 +99,16 @@ let backgroundImage = null;
    D → C → B → A
 ============================================================ */
 
-const SERIES = ["D", "C", "B", "A"];
+const SERIES = [
+  "D",
+  "C",
+  "B",
+  "A"
+];
 
 
 /* ============================================================
-   MATCHING RULE
-
-   DEFAULT:
-
-   A=A RIGHT
-   B=B RIGHT
-   C=C RIGHT
-   D=D RIGHT
-
-   Baaki WRONG.
-
-   Tum UI se rules change kar sakte ho.
+   MATCHING RULES
 ============================================================ */
 
 const matchRules = {
@@ -148,7 +145,7 @@ const matchRules = {
 
 
 /* ============================================================
-   CURRENT ANIMATION
+   STATE
 ============================================================ */
 
 let animation = null;
@@ -159,30 +156,61 @@ let paused = false;
 
 
 /* ============================================================
-   UPLOAD IMAGE
+   WAIT
+============================================================ */
+
+function wait(ms) {
+
+  return new Promise(
+    resolve =>
+      setTimeout(
+        resolve,
+        ms
+      )
+  );
+
+}
+
+
+/* ============================================================
+   READ IMAGE
 ============================================================ */
 
 function readImage(file) {
 
-  return new Promise((resolve, reject) => {
+  return new Promise(
+    (resolve, reject) => {
 
-    if (!file) {
+      if (!file) {
 
-      resolve(null);
+        resolve(null);
 
-      return;
+        return;
+
+      }
+
+
+      const img =
+        new Image();
+
+
+      img.onload =
+        () => {
+
+          resolve(img);
+
+        };
+
+
+      img.onerror =
+        reject;
+
+
+      img.src =
+        URL.createObjectURL(file);
+
     }
-
-
-    const img = new Image();
-
-    img.onload = () => resolve(img);
-
-    img.onerror = reject;
-
-    img.src = URL.createObjectURL(file);
-
-  });
+  );
 
 }
 
@@ -193,67 +221,163 @@ function readImage(file) {
 
 document
   .getElementById("backgroundInput")
-  .addEventListener("change", async function(event) {
+  .addEventListener(
+    "change",
+    async event => {
 
-    if (!event.target.files[0]) return;
-
-    backgroundImage =
-      await readImage(event.target.files[0]);
-
-    draw();
-
-  });
+      const file =
+        event.target.files[0];
 
 
-/* ============================================================
-   PNG UPLOADS
-============================================================ */
-
-["A", "B", "C", "D"].forEach(letter => {
-
-  document
-    .getElementById("input" + letter)
-    .addEventListener("change", async function(event) {
-
-      if (!event.target.files[0]) return;
+      if (!file) return;
 
 
-      pieces[letter].image =
-        await readImage(event.target.files[0]);
+      backgroundImage =
+        await readImage(file);
 
 
-      pieces[letter].fixed = false;
+      const preview =
+        document.getElementById(
+          "backgroundPreview"
+        );
 
 
-      createRulesUI();
+      preview.innerHTML =
+        "";
+
+
+      const img =
+        document.createElement(
+          "img"
+        );
+
+
+      img.src =
+        backgroundImage.src;
+
+
+      img.style.width =
+        "100%";
+
+
+      img.style.height =
+        "100%";
+
+
+      img.style.objectFit =
+        "cover";
+
+
+      img.style.borderRadius =
+        "5px";
+
+
+      preview.appendChild(
+        img
+      );
+
 
       draw();
 
-    });
-
-});
+    }
+  );
 
 
 /* ============================================================
-   SPLIT CONTROL
+   LETTER UPLOAD
 ============================================================ */
 
-const splitRange =
-  document.getElementById("splitRange");
+["A", "B", "C", "D"]
+.forEach(
+  letter => {
+
+    document
+      .getElementById(
+        "input" + letter
+      )
+      .addEventListener(
+        "change",
+        async event => {
+
+          const file =
+            event.target.files[0];
 
 
-const splitValue =
-  document.getElementById("splitValue");
+          if (!file) return;
 
 
-splitRange.addEventListener("input", function() {
+          pieces[letter].image =
+            await readImage(file);
 
-  splitValue.textContent =
-    this.value + "%";
 
-  draw();
+          pieces[letter].fixed =
+            false;
 
-});
+
+          updateThumbnail(
+            letter
+          );
+
+
+          createRulesUI();
+
+
+          draw();
+
+        }
+      );
+
+  }
+);
+
+
+/* ============================================================
+   THUMBNAIL
+============================================================ */
+
+function updateThumbnail(
+  letter
+) {
+
+  const box =
+    document.getElementById(
+      "thumb" + letter
+    );
+
+
+  const img =
+    pieces[letter].image;
+
+
+  if (!img) {
+
+    box.innerHTML =
+      letter;
+
+    return;
+
+  }
+
+
+  box.innerHTML =
+    "";
+
+
+  const thumb =
+    document.createElement(
+      "img"
+    );
+
+
+  thumb.src =
+    img.src;
+
+
+  box.appendChild(
+    thumb
+  );
+
+}
 
 
 /* ============================================================
@@ -261,42 +385,148 @@ splitRange.addEventListener("input", function() {
 ============================================================ */
 
 const sizeRange =
-  document.getElementById("sizeRange");
+  document.getElementById(
+    "sizeRange"
+  );
 
 
 const sizeValue =
-  document.getElementById("sizeValue");
+  document.getElementById(
+    "sizeValue"
+  );
 
 
-sizeRange.addEventListener("input", function() {
+sizeRange.addEventListener(
+  "input",
+  () => {
 
-  sizeValue.textContent =
-    this.value + "px";
+    sizeValue.textContent =
+      sizeRange.value + "px";
 
-  draw();
 
-});
+    draw();
+
+  }
+);
 
 
 /* ============================================================
-   IMAGE SIZE
+   UPLOADED LETTERS
 ============================================================ */
 
-function getImageSize(img) {
+function getUploadedLetters() {
 
-  const wantedHeight =
-    Number(sizeRange.value);
+  return [
+    "A",
+    "B",
+    "C",
+    "D"
+  ]
+  .filter(
+    letter =>
+      !!pieces[letter].image
+  );
+
+}
 
 
-  const scale =
-    wantedHeight / img.height;
+/* ============================================================
+   SAFE IMAGE SIZE
+
+   IMPORTANT BUG FIX:
+
+   Image ko requested size se bada nahi hone dena
+   agar available vertical space kam ho.
+
+   Isse image top se bahar nahi jayegi.
+============================================================ */
+
+function getImageSize(
+  img
+) {
+
+  if (!img) {
+
+    return {
+      width: 0,
+      height: 0
+    };
+
+  }
+
+
+  const requestedHeight =
+    Number(
+      sizeRange.value
+    );
+
+
+  const uploaded =
+    getUploadedLetters();
+
+
+  const count =
+    Math.max(
+      1,
+      uploaded.length
+    );
+
+
+  /*
+    Top/bottom safe area.
+    Pehle wale se top margin kam rakha hai.
+  */
+
+  const top =
+    120;
+
+
+  const bottom =
+    1710;
+
+
+  /*
+    Small gap between A/B/C/D.
+  */
+
+  const gap =
+    35;
+
+
+  const available =
+    bottom -
+    top -
+    gap * (count - 1);
+
+
+  const maxHeight =
+    available / count;
+
+
+  /*
+    Main bug fix:
+    Requested size agar available area se bada hai,
+    automatically fit ho jayega.
+  */
+
+  const height =
+    Math.min(
+      requestedHeight,
+      maxHeight
+    );
+
+
+  const ratio =
+    img.width /
+    img.height;
 
 
   return {
 
-    width: img.width * scale,
+    width:
+      height * ratio,
 
-    height: wantedHeight
+    height
 
   };
 
@@ -304,38 +534,31 @@ function getImageSize(img) {
 
 
 /* ============================================================
-   GET ACTIVE PIECES
+   SLOT POSITIONS
+
+   IMPORTANT BUG FIX:
+   A/B/C/D ke beech extra space kam.
 ============================================================ */
 
-function getUploadedLetters() {
-
-  return ["A", "B", "C", "D"]
-    .filter(letter => pieces[letter].image);
-
-}
-
-
-/* ============================================================
-   LEFT SIDE POSITIONS
-
-   TOP SPACE REDUCED
-============================================================ */
-
-function getSlot(letter) {
+function getSlot(
+  letter
+) {
 
   const uploaded =
     getUploadedLetters();
 
 
   const index =
-    uploaded.indexOf(letter);
+    uploaded.indexOf(
+      letter
+    );
 
 
   if (index === -1) {
 
     return {
-      x: 65,
-      y: 300
+      x: 70,
+      y: 190
     };
 
   }
@@ -345,40 +568,52 @@ function getSlot(letter) {
     uploaded.length;
 
 
-  const top = 250;
-
-  const bottom = 1580;
-
-
-  let center;
+  const top =
+    80;
 
 
-  if (count === 1) {
+  const bottom =
+    1910;
 
-    center =
-      (top + bottom) / 2;
 
-  }
-
-  else {
-
-    center =
-      top +
-      index *
-      ((bottom - top) / (count - 1));
-
-  }
+  const gap =
+    32;
 
 
   const size =
-    getImageSize(pieces[letter].image);
+    getImageSize(
+      pieces[letter].image
+    );
+
+
+  const available =
+    bottom -
+    top -
+    gap * (count - 1);
+
+
+  const actualHeight =
+    Math.min(
+      Number(sizeRange.value),
+      available / count
+    );
+
+
+  /*
+    Equal compact spacing.
+  */
+
+  const y =
+    top +
+    index *
+      (actualHeight + gap);
 
 
   return {
 
     x: 65,
 
-    y: center - size.height / 2
+    y
 
   };
 
@@ -389,7 +624,9 @@ function getSlot(letter) {
    BACKGROUND
 ============================================================ */
 
-function drawBackground(target = ctx) {
+function drawBackground(
+  target = ctx
+) {
 
   target.clearRect(
     0,
@@ -401,7 +638,9 @@ function drawBackground(target = ctx) {
 
   if (!backgroundImage) {
 
-    target.fillStyle = "#111";
+    target.fillStyle =
+      "#111";
+
 
     target.fillRect(
       0,
@@ -410,6 +649,56 @@ function drawBackground(target = ctx) {
       HEIGHT
     );
 
+
+    /*
+      Demo-style placeholder.
+    */
+
+    const gradient =
+      target.createLinearGradient(
+        0,
+        0,
+        0,
+        HEIGHT
+      );
+
+
+    gradient.addColorStop(
+      0,
+      "#0755ff"
+    );
+
+
+    gradient.addColorStop(
+      .52,
+      "#3c92f0"
+    );
+
+
+    gradient.addColorStop(
+      .53,
+      "#6ab437"
+    );
+
+
+    gradient.addColorStop(
+      1,
+      "#32931d"
+    );
+
+
+    target.fillStyle =
+      gradient;
+
+
+    target.fillRect(
+      0,
+      0,
+      WIDTH,
+      HEIGHT
+    );
+
+
     return;
 
   }
@@ -417,29 +706,36 @@ function drawBackground(target = ctx) {
 
   const scale =
     Math.max(
-      WIDTH / backgroundImage.width,
-      HEIGHT / backgroundImage.height
+      WIDTH /
+        backgroundImage.width,
+
+      HEIGHT /
+        backgroundImage.height
     );
 
 
-  const width =
-    backgroundImage.width * scale;
+  const w =
+    backgroundImage.width *
+    scale;
 
 
-  const height =
-    backgroundImage.height * scale;
+  const h =
+    backgroundImage.height *
+    scale;
 
 
   target.drawImage(
+
     backgroundImage,
 
-    (WIDTH - width) / 2,
+    (WIDTH - w) / 2,
 
-    (HEIGHT - height) / 2,
+    (HEIGHT - h) / 2,
 
-    width,
+    w,
 
-    height
+    h
+
   );
 
 }
@@ -449,7 +745,10 @@ function drawBackground(target = ctx) {
    DRAW LEFT HALF
 ============================================================ */
 
-function drawLeftHalf(letter, target = ctx) {
+function drawLeftHalf(
+  letter,
+  target = ctx
+) {
 
   const img =
     pieces[letter].image;
@@ -467,15 +766,21 @@ function drawLeftHalf(letter, target = ctx) {
 
 
   const split =
-    Number(splitRange.value) / 100;
+    Number(
+      document.getElementById(
+        "splitRange"
+      ).value
+    ) / 100;
 
 
   const sourceWidth =
-    img.width * split;
+    img.width *
+    split;
 
 
   const drawWidth =
-    size.width * split;
+    size.width *
+    split;
 
 
   target.drawImage(
@@ -483,15 +788,19 @@ function drawLeftHalf(letter, target = ctx) {
     img,
 
     0,
+
     0,
 
     sourceWidth,
+
     img.height,
 
     pos.x,
+
     pos.y,
 
     drawWidth,
+
     size.height
 
   );
@@ -500,10 +809,13 @@ function drawLeftHalf(letter, target = ctx) {
 
 
 /* ============================================================
-   DRAW COMPLETE PIECE
+   DRAW COMPLETE
 ============================================================ */
 
-function drawCompletePiece(letter, target = ctx) {
+function drawCompletePiece(
+  letter,
+  target = ctx
+) {
 
   const img =
     pieces[letter].image;
@@ -525,9 +837,11 @@ function drawCompletePiece(letter, target = ctx) {
     img,
 
     pos.x,
+
     pos.y,
 
     size.width,
+
     size.height
 
   );
@@ -558,19 +872,26 @@ function drawMovingHalf(
 
 
   const split =
-    Number(splitRange.value) / 100;
+    Number(
+      document.getElementById(
+        "splitRange"
+      ).value
+    ) / 100;
 
 
   const sourceX =
-    img.width * split;
+    img.width *
+    split;
 
 
   const sourceWidth =
-    img.width * (1 - split);
+    img.width *
+    (1 - split);
 
 
   const drawWidth =
-    size.width * (1 - split);
+    size.width *
+    (1 - split);
 
 
   target.drawImage(
@@ -578,15 +899,19 @@ function drawMovingHalf(
     img,
 
     sourceX,
+
     0,
 
     sourceWidth,
+
     img.height,
 
     x,
+
     y,
 
     drawWidth,
+
     size.height
 
   );
@@ -595,17 +920,30 @@ function drawMovingHalf(
 
 
 /* ============================================================
-   DRAW ALL PIECES
+   DRAW PIECES
 ============================================================ */
 
-function drawPieces(target = ctx) {
+function drawPieces(
+  target = ctx
+) {
 
-  for (const letter of ["A", "B", "C", "D"]) {
+  for (
+    const letter of
+    ["A", "B", "C", "D"]
+  ) {
 
-    if (!pieces[letter].image) continue;
+    if (
+      !pieces[letter].image
+    ) {
+
+      continue;
+
+    }
 
 
-    if (pieces[letter].fixed) {
+    if (
+      pieces[letter].fixed
+    ) {
 
       drawCompletePiece(
         letter,
@@ -629,7 +967,9 @@ function drawPieces(target = ctx) {
 
 
 /* ============================================================
-   DRAW RESULT ICON
+   RESULT ICON
+
+   Icon target image ke just saamne.
 ============================================================ */
 
 function drawResultIcon(
@@ -645,11 +985,11 @@ function drawResultIcon(
       : wrongIcon;
 
 
-  const size = 190;
+  const size =
+    175;
 
 
   if (
-    icon &&
     icon.complete &&
     icon.naturalWidth
   ) {
@@ -668,34 +1008,47 @@ function drawResultIcon(
 
     );
 
+
     return;
 
   }
 
 
-  /* fallback */
+  /*
+    Fallback
+  */
 
   target.save();
+
 
   target.font =
     "bold 150px Arial";
 
+
   target.textAlign =
     "center";
+
 
   target.textBaseline =
     "middle";
 
+
   target.fillStyle =
     correct
-      ? "#20dc77"
-      : "#ff3030";
+      ? "#00d879"
+      : "#ff351f";
 
 
   target.fillText(
-    correct ? "✓" : "✕",
+
+    correct
+      ? "✓"
+      : "✕",
+
     x,
+
     y
+
   );
 
 
@@ -729,11 +1082,14 @@ function draw() {
   );
 
 
-  if (animation.result) {
+  if (
+    animation.result
+  ) {
 
     drawResultIcon(
 
-      animation.result === "right",
+      animation.result ===
+        "right",
 
       animation.iconX,
 
@@ -749,10 +1105,12 @@ function draw() {
 /* ============================================================
    START POSITION
 
-   Top-right se half niklega.
+   Top-right.
 ============================================================ */
 
-function getStartPosition(letter) {
+function getStartPosition(
+  letter
+) {
 
   const img =
     pieces[letter].image;
@@ -763,11 +1121,16 @@ function getStartPosition(letter) {
 
 
   const split =
-    Number(splitRange.value) / 100;
+    Number(
+      document.getElementById(
+        "splitRange"
+      ).value
+    ) / 100;
 
 
   const movingWidth =
-    size.width * (1 - split);
+    size.width *
+    (1 - split);
 
 
   return {
@@ -777,7 +1140,8 @@ function getStartPosition(letter) {
       movingWidth -
       70,
 
-    y: 130
+    y:
+      150
 
   };
 
@@ -788,10 +1152,12 @@ function getStartPosition(letter) {
    TARGET POSITION
 ============================================================ */
 
-function getTargetPosition(letter) {
+function getTargetPosition(
+  target
+) {
 
   const img =
-    pieces[letter].image;
+    pieces[target].image;
 
 
   const size =
@@ -799,18 +1165,23 @@ function getTargetPosition(letter) {
 
 
   const pos =
-    getSlot(letter);
+    getSlot(target);
 
 
   const split =
-    Number(splitRange.value) / 100;
+    Number(
+      document.getElementById(
+        "splitRange"
+      ).value
+    ) / 100;
 
 
   return {
 
     x:
       pos.x +
-      size.width * split,
+      size.width *
+      split,
 
     y:
       pos.y
@@ -826,7 +1197,7 @@ function getTargetPosition(letter) {
 
 function ease(t) {
 
-  return t < 0.5
+  return t < .5
 
     ? 2 * t * t
 
@@ -848,97 +1219,112 @@ function animateHalf(
   target
 ) {
 
-  return new Promise(resolve => {
+  return new Promise(
+    resolve => {
 
-    const start =
-      getStartPosition(source);
-
-
-    const end =
-      getTargetPosition(target);
-
-
-    const duration =
-      Number(
-        document.getElementById(
-          "duration"
-        ).value
-      );
-
-
-    const startTime =
-      performance.now();
-
-
-    function frame(now) {
-
-      if (paused) {
-
-        requestAnimationFrame(frame);
-
-        return;
-
-      }
-
-
-      const progress =
-        Math.min(
-          1,
-          (now - startTime) /
-          duration
+      const start =
+        getStartPosition(
+          source
         );
 
 
-      const eased =
-        ease(progress);
+      const end =
+        getTargetPosition(
+          target
+        );
 
 
-      animation = {
-
-        source,
-
-        target,
-
-        x:
-          start.x +
-          (end.x - start.x) *
-          eased,
-
-        y:
-          start.y +
-          (end.y - start.y) *
-          eased,
-
-        result: null,
-
-        iconX: 0,
-
-        iconY: 0
-
-      };
+      const duration =
+        Number(
+          document.getElementById(
+            "duration"
+          ).value
+        );
 
 
-      draw();
+      const startTime =
+        performance.now();
 
 
-      if (progress < 1) {
+      function frame(now) {
 
-        requestAnimationFrame(frame);
+        if (paused) {
+
+          requestAnimationFrame(
+            frame
+          );
+
+          return;
+
+        }
+
+
+        const progress =
+          Math.min(
+            1,
+
+            (now - startTime) /
+            duration
+          );
+
+
+        const eased =
+          ease(progress);
+
+
+        animation = {
+
+          source,
+
+          target,
+
+          x:
+            start.x +
+            (end.x - start.x) *
+            eased,
+
+          y:
+            start.y +
+            (end.y - start.y) *
+            eased,
+
+          result: null,
+
+          iconX: 0,
+
+          iconY: 0
+
+        };
+
+
+        draw();
+
+
+        if (
+          progress < 1
+        ) {
+
+          requestAnimationFrame(
+            frame
+          );
+
+        }
+
+        else {
+
+          resolve();
+
+        }
 
       }
 
-      else {
 
-        resolve();
-
-      }
+      requestAnimationFrame(
+        frame
+      );
 
     }
-
-
-    requestAnimationFrame(frame);
-
-  });
+  );
 
 }
 
@@ -952,78 +1338,92 @@ function returnHalf(
   target
 ) {
 
-  return new Promise(resolve => {
+  return new Promise(
+    resolve => {
 
-    const start =
-      getStartPosition(source);
-
-
-    const end =
-      getTargetPosition(target);
-
-
-    const duration =
-      Number(
-        document.getElementById(
-          "duration"
-        ).value
-      );
-
-
-    const startTime =
-      performance.now();
-
-
-    function frame(now) {
-
-      const progress =
-        Math.min(
-          1,
-          (now - startTime) /
-          duration
+      const start =
+        getTargetPosition(
+          target
         );
 
 
-      const eased =
-        ease(progress);
+      const end =
+        getStartPosition(
+          source
+        );
 
 
-      animation.x =
-        end.x +
-        (start.x - end.x) *
-        eased;
+      const duration =
+        Number(
+          document.getElementById(
+            "duration"
+          ).value
+        );
 
 
-      animation.y =
-        end.y +
-        (start.y - end.y) *
-        eased;
+      const startTime =
+        performance.now();
 
 
-      animation.result = null;
+      function frame(now) {
+
+        const progress =
+          Math.min(
+            1,
+
+            (now - startTime) /
+            duration
+          );
 
 
-      draw();
+        const eased =
+          ease(progress);
 
 
-      if (progress < 1) {
+        animation.x =
+          start.x +
+          (end.x - start.x) *
+          eased;
 
-        requestAnimationFrame(frame);
+
+        animation.y =
+          start.y +
+          (end.y - start.y) *
+          eased;
+
+
+        animation.result =
+          null;
+
+
+        draw();
+
+
+        if (
+          progress < 1
+        ) {
+
+          requestAnimationFrame(
+            frame
+          );
+
+        }
+
+        else {
+
+          resolve();
+
+        }
 
       }
 
-      else {
 
-        resolve();
-
-      }
+      requestAnimationFrame(
+        frame
+      );
 
     }
-
-
-    requestAnimationFrame(frame);
-
-  });
+  );
 
 }
 
@@ -1032,7 +1432,9 @@ function returnHalf(
    SOUND
 ============================================================ */
 
-function playSound(correct) {
+function playSound(
+  correct
+) {
 
   const audio =
     correct
@@ -1040,22 +1442,26 @@ function playSound(correct) {
       : wrongSound;
 
 
-  if (!audio) return;
-
-
   try {
 
     audio.pause();
 
-    audio.currentTime = 0;
+    audio.currentTime =
+      0;
 
-    audio.play().catch(() => {});
+
+    audio.play()
+      .catch(
+        () => {}
+      );
 
   }
 
   catch (error) {
 
-    console.log(error);
+    console.log(
+      error
+    );
 
   }
 
@@ -1063,7 +1469,7 @@ function playSound(correct) {
 
 
 /* ============================================================
-   SHOW RESULT
+   RESULT
 ============================================================ */
 
 async function showResult(
@@ -1082,20 +1488,24 @@ async function showResult(
     getSlot(target);
 
 
-  /*
-    ICON IMAGE KE JUST SAMNE
-  */
-
   animation.result =
     correct
       ? "right"
       : "wrong";
 
 
+  /*
+    Icon directly in front of target.
+  */
+
   animation.iconX =
-    pos.x +
-    size.width +
-    125;
+    Math.min(
+      WIDTH - 105,
+
+      pos.x +
+      size.width +
+      115
+    );
 
 
   animation.iconY =
@@ -1103,24 +1513,26 @@ async function showResult(
     size.height / 2;
 
 
-  playSound(correct);
+  playSound(
+    correct
+  );
 
 
   draw();
 
 
-  const pause =
+  await wait(
     Number(
       document.getElementById(
         "pauseDuration"
       ).value
-    );
+    )
+  );
 
 
-  await wait(pause);
+  animation.result =
+    null;
 
-
-  animation.result = null;
 
   draw();
 
@@ -1128,24 +1540,7 @@ async function showResult(
 
 
 /* ============================================================
-   WAIT
-============================================================ */
-
-function wait(ms) {
-
-  return new Promise(
-    resolve =>
-      setTimeout(
-        resolve,
-        ms
-      )
-  );
-
-}
-
-
-/* ============================================================
-   CHECK MATCH
+   MATCH
 ============================================================ */
 
 function isMatch(
@@ -1162,10 +1557,12 @@ function isMatch(
 
 
 /* ============================================================
-   RUN ONE PIECE
+   RUN ONE SOURCE
 ============================================================ */
 
-async function runPiece(source) {
+async function runPiece(
+  source
+) {
 
   if (
     !pieces[source].image ||
@@ -1178,15 +1575,22 @@ async function runPiece(source) {
 
 
   /*
-    TARGETS ALWAYS A → B → C → D
-    BUT SERIES SOURCE D → C → B → A
+    Target order:
+
+    A → B → C → D
   */
 
-  const targets =
-    ["A", "B", "C", "D"];
+  const targets = [
+    "A",
+    "B",
+    "C",
+    "D"
+  ];
 
 
-  for (const target of targets) {
+  for (
+    const target of targets
+  ) {
 
     if (
       !pieces[target].image ||
@@ -1199,7 +1603,7 @@ async function runPiece(source) {
 
 
     updateStatus(
-      source + " → " + target,
+      `${source}-right → ${target}`,
       "Half image moving..."
     );
 
@@ -1227,22 +1631,23 @@ async function runPiece(source) {
     if (correct) {
 
       /*
-        RIGHT HONE KE BAAD
-        COMPLETE PIECE FIXED
+        FIXED PERMANENTLY
       */
 
-      pieces[source].fixed = true;
+      pieces[source].fixed =
+        true;
 
 
-      animation = null;
+      animation =
+        null;
 
 
       draw();
 
 
       updateStatus(
-        source + " fixed",
-        "Correct match!"
+        `${source} FIXED ✓`,
+        "Correct match."
       );
 
 
@@ -1253,7 +1658,7 @@ async function runPiece(source) {
 
     /*
       WRONG:
-      half wapas top-right
+      return to top-right.
     */
 
     await returnHalf(
@@ -1267,10 +1672,7 @@ async function runPiece(source) {
 
 
 /* ============================================================
-   RUN PUZZLE
-
-   FIXED:
-   D → C → B → A
+   PUZZLE
 ============================================================ */
 
 async function runPuzzle() {
@@ -1278,10 +1680,421 @@ async function runPuzzle() {
   if (running) return;
 
 
-  if (!backgroundImage) {
+  const uploaded =
+    getUploadedLetters();
+
+
+  if (!uploaded.length) {
 
     alert(
-      "Please upload background image."
+      "Please upload at least one letter PNG."
+    );
+
+    return;
+
+  }
+
+
+  running = true;
+
+  paused = false;
+
+
+  for (
+    const letter of
+    ["A", "B", "C", "D"]
+  ) {
+
+    pieces[letter].fixed =
+      false;
+
+  }
+
+
+  animation =
+    null;
+
+
+  draw();
+
+
+  /*
+    FIXED SERIES:
+
+    D → C → B → A
+  */
+
+  for (
+    const source of SERIES
+  ) {
+
+    if (
+      pieces[source].image &&
+      !pieces[source].fixed
+    ) {
+
+      await runPiece(
+        source
+      );
+
+    }
+
+  }
+
+
+  animation =
+    null;
+
+
+  draw();
+
+
+  updateStatus(
+    "COMPLETE ✓",
+    "D → C → B → A finished."
+  );
+
+
+  running = false;
+
+}
+
+
+/* ============================================================
+   STATUS
+============================================================ */
+
+function updateStatus(
+  title,
+  message
+) {
+
+  document.getElementById(
+    "statusTitle"
+  ).textContent =
+    title;
+
+
+  document.getElementById(
+    "statusMessage"
+  ).textContent =
+    message;
+
+}
+
+
+/* ============================================================
+   RULE TABLE
+============================================================ */
+
+function createRulesUI() {
+
+  const container =
+    document.getElementById(
+      "rulesContainer"
+    );
+
+
+  const letters =
+    getUploadedLetters();
+
+
+  if (!letters.length) {
+
+    container.innerHTML =
+      `
+        <div style="
+          color:#777;
+          font-size:10px;
+          padding:8px 0;
+        ">
+          Upload PNGs to create rules.
+        </div>
+      `;
+
+    return;
+
+  }
+
+
+  let html =
+    `
+      <table class="rule-table">
+
+        <tr>
+
+          <th>Source</th>
+    `;
+
+
+  for (
+    const target of letters
+  ) {
+
+    html +=
+      `<th>${target}</th>`;
+
+  }
+
+
+  html +=
+    `</tr>`;
+
+
+  /*
+    Rule source order:
+    D C B A
+  */
+
+  for (
+    const source of
+    ["D", "C", "B", "A"]
+  ) {
+
+    if (
+      !letters.includes(source)
+    ) {
+
+      continue;
+
+    }
+
+
+    html +=
+      `
+        <tr>
+
+          <th>
+            ${source}-right
+          </th>
+      `;
+
+
+    for (
+      const target of letters
+    ) {
+
+      const correct =
+        matchRules[source][target];
+
+
+      html +=
+        `
+          <td>
+
+            <button
+              class="rule-btn ${
+                correct
+                  ? "right"
+                  : "wrong"
+              }"
+
+              data-source="${source}"
+
+              data-target="${target}"
+            >
+
+              ${
+                correct
+                  ? "✓"
+                  : "✕"
+              }
+
+            </button>
+
+          </td>
+        `;
+
+    }
+
+
+    html +=
+      `</tr>`;
+
+  }
+
+
+  html +=
+    `</table>`;
+
+
+  container.innerHTML =
+    html;
+
+
+  container
+    .querySelectorAll(
+      ".rule-btn"
+    )
+    .forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            const source =
+              button.dataset.source;
+
+
+            const target =
+              button.dataset.target;
+
+
+            matchRules[source][target] =
+              !matchRules[source][target];
+
+
+            createRulesUI();
+
+          }
+        );
+
+      }
+    );
+
+}
+
+
+/* ============================================================
+   PREVIEW BUTTON
+============================================================ */
+
+document
+  .getElementById(
+    "previewBtn"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      runPuzzle();
+
+    }
+  );
+
+
+/* ============================================================
+   PLAY
+============================================================ */
+
+document
+  .getElementById(
+    "playBtn"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      if (!running) {
+
+        runPuzzle();
+
+      }
+
+    }
+  );
+
+
+/* ============================================================
+   PAUSE
+============================================================ */
+
+document
+  .getElementById(
+    "pauseBtn"
+  )
+  .addEventListener(
+    "click",
+    event => {
+
+      paused =
+        !paused;
+
+
+      event.currentTarget
+        .textContent =
+          paused
+            ? "▶ Resume"
+            : "‖ Pause";
+
+    }
+  );
+
+
+/* ============================================================
+   RESET
+============================================================ */
+
+document
+  .getElementById(
+    "resetBtn"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      running =
+        false;
+
+
+      paused =
+        false;
+
+
+      animation =
+        null;
+
+
+      for (
+        const letter of
+        ["A", "B", "C", "D"]
+      ) {
+
+        pieces[letter].fixed =
+          false;
+
+      }
+
+
+      document.getElementById(
+        "pauseBtn"
+      ).textContent =
+        "‖ Pause";
+
+
+      updateStatus(
+        "Ready",
+        "Animation reset."
+      );
+
+
+      draw();
+
+    }
+  );
+
+
+/* ============================================================
+   NORMAL VIDEO EXPORT
+============================================================ */
+
+document
+  .getElementById(
+    "exportBtn"
+  )
+  .addEventListener(
+    "click",
+    exportVideo
+  );
+
+
+async function exportVideo() {
+
+  if (running) {
+
+    alert(
+      "Pehle current animation complete hone do."
     );
 
     return;
@@ -1304,346 +2117,43 @@ async function runPuzzle() {
   }
 
 
-  running = true;
-
-  paused = false;
-
-
-  for (const letter of
-       ["A", "B", "C", "D"]) {
-
-    pieces[letter].fixed =
-      false;
-
-  }
+  const button =
+    document.getElementById(
+      "exportBtn"
+    );
 
 
-  animation = null;
+  const status =
+    document.getElementById(
+      "exportStatus"
+    );
 
-  draw();
+
+  const progress =
+    document.getElementById(
+      "progressBar"
+    );
+
+
+  button.disabled =
+    true;
+
+
+  button.textContent =
+    "RECORDING...";
+
+
+  status.textContent =
+    "Creating video...";
+
+
+  progress.style.width =
+    "0%";
 
 
   /*
-    EXACT SERIES:
-    D → C → B → A
+    Separate export canvas
   */
-
-  for (const source of SERIES) {
-
-    if (
-      pieces[source].image &&
-      !pieces[source].fixed
-    ) {
-
-      await runPiece(
-        source
-      );
-
-    }
-
-  }
-
-
-  animation = null;
-
-  draw();
-
-
-  updateStatus(
-    "PUZZLE COMPLETE",
-    "Series D → C → B → A finished."
-  );
-
-
-  running = false;
-
-}
-
-
-/* ============================================================
-   STATUS
-============================================================ */
-
-function updateStatus(
-  title,
-  message
-) {
-
-  document.getElementById(
-    "statusTitle"
-  ).textContent = title;
-
-
-  document.getElementById(
-    "statusMessage"
-  ).textContent = message;
-
-}
-
-
-/* ============================================================
-   RULE UI
-============================================================ */
-
-function createRulesUI() {
-
-  const container =
-    document.getElementById(
-      "rulesContainer"
-    );
-
-
-  const available =
-    getUploadedLetters();
-
-
-  if (!available.length) {
-
-    container.innerHTML =
-      "<small>PNG upload karo.</small>";
-
-    return;
-
-  }
-
-
-  let html = `
-    <table class="rule-table">
-
-      <tr>
-
-        <th>Source</th>
-  `;
-
-
-  for (const target of available) {
-
-    html += `
-      <th>${target}</th>
-    `;
-
-  }
-
-
-  html += `
-      </tr>
-  `;
-
-
-  for (const source of available) {
-
-    html += `
-      <tr>
-        <th>${source}</th>
-    `;
-
-
-    for (const target of available) {
-
-      const correct =
-        matchRules[source][target];
-
-
-      html += `
-        <td>
-
-          <button
-            class="rule-button ${
-              correct
-                ? "right"
-                : "wrong"
-            }"
-            data-source="${source}"
-            data-target="${target}"
-          >
-
-            ${
-              correct
-                ? "✓ RIGHT"
-                : "✕ WRONG"
-            }
-
-          </button>
-
-        </td>
-      `;
-
-    }
-
-
-    html += `
-      </tr>
-    `;
-
-  }
-
-
-  html += `
-    </table>
-  `;
-
-
-  container.innerHTML = html;
-
-
-  container
-    .querySelectorAll(
-      ".rule-button"
-    )
-    .forEach(button => {
-
-      button.addEventListener(
-        "click",
-        function() {
-
-          const source =
-            this.dataset.source;
-
-
-          const target =
-            this.dataset.target;
-
-
-          matchRules[source][target] =
-            !matchRules[source][target];
-
-
-          createRulesUI();
-
-        }
-      );
-
-    });
-
-}
-
-
-/* ============================================================
-   PREVIEW
-============================================================ */
-
-document
-  .getElementById("previewBtn")
-  .addEventListener(
-    "click",
-    runPuzzle
-  );
-
-
-/* ============================================================
-   PAUSE
-============================================================ */
-
-document
-  .getElementById("pauseBtn")
-  .addEventListener(
-    "click",
-    function() {
-
-      paused = !paused;
-
-
-      this.textContent =
-        paused
-          ? "▶ Resume"
-          : "⏸ Pause";
-
-    }
-  );
-
-
-/* ============================================================
-   RESTART
-============================================================ */
-
-document
-  .getElementById("restartBtn")
-  .addEventListener(
-    "click",
-    function() {
-
-      running = false;
-
-      paused = false;
-
-      animation = null;
-
-
-      for (const letter of
-           ["A", "B", "C", "D"]) {
-
-        pieces[letter].fixed =
-          false;
-
-      }
-
-
-      this.textContent =
-        "↻ Restart";
-
-
-      draw();
-
-
-      updateStatus(
-        "Ready",
-        "Animation restarted."
-      );
-
-    }
-  );
-
-
-/* ============================================================
-   EXPORT VIDEO
-============================================================ */
-
-document
-  .getElementById("exportBtn")
-  .addEventListener(
-    "click",
-    exportVideo
-  );
-
-
-async function exportVideo() {
-
-  if (running) {
-
-    alert(
-      "Pehle current animation complete hone do."
-    );
-
-    return;
-
-  }
-
-
-  if (!backgroundImage) {
-
-    alert(
-      "Background upload karo."
-    );
-
-    return;
-
-  }
-
-
-  const uploaded =
-    getUploadedLetters();
-
-
-  if (!uploaded.length) {
-
-    alert(
-      "PNG images upload karo."
-    );
-
-    return;
-
-  }
-
 
   const exportCanvas =
     document.createElement(
@@ -1653,6 +2163,7 @@ async function exportVideo() {
 
   exportCanvas.width =
     WIDTH;
+
 
   exportCanvas.height =
     HEIGHT;
@@ -1664,11 +2175,8 @@ async function exportVideo() {
     );
 
 
-  /*
-    VIDEO 30 FPS
-  */
-
-  const FPS = 30;
+  const FPS =
+    30;
 
 
   const stream =
@@ -1678,95 +2186,103 @@ async function exportVideo() {
 
 
   /*
+    ========================================================
     AUDIO STREAM
+    ========================================================
   */
 
-  const AudioContext =
-    window.AudioContext ||
-    window.webkitAudioContext;
+  let audioContext = null;
 
+  let audioDestination = null;
 
-  const audioContext =
-    new AudioContext();
+  let rightNode = null;
 
-
-  const destination =
-    audioContext
-      .createMediaStreamDestination();
-
-
-  /*
-    AUDIO ELEMENTS KO
-    MEDIA STREAM ME CONNECT
-  */
-
-  let rightSource = null;
-
-  let wrongSource = null;
+  let wrongNode = null;
 
 
   try {
 
-    rightSource =
+    const AudioContext =
+      window.AudioContext ||
+      window.webkitAudioContext;
+
+
+    audioContext =
+      new AudioContext();
+
+
+    audioDestination =
+      audioContext
+        .createMediaStreamDestination();
+
+
+    rightNode =
       audioContext
         .createMediaElementSource(
           rightSound
         );
 
-    rightSource.connect(
-      destination
-    );
 
-    rightSource.connect(
-      audioContext.destination
-    );
-
-  }
-
-  catch (error) {
-
-    console.log(error);
-
-  }
-
-
-  try {
-
-    wrongSource =
+    wrongNode =
       audioContext
         .createMediaElementSource(
           wrongSound
         );
 
-    wrongSource.connect(
-      destination
+
+    rightNode.connect(
+      audioDestination
     );
 
-    wrongSource.connect(
+
+    wrongNode.connect(
+      audioDestination
+    );
+
+
+    /*
+      Audio ko browser speaker par bhi bhejo.
+    */
+
+    rightNode.connect(
       audioContext.destination
     );
+
+
+    wrongNode.connect(
+      audioContext.destination
+    );
+
+
+    audioDestination
+      .stream
+      .getAudioTracks()
+      .forEach(
+        track => {
+
+          stream.addTrack(
+            track
+          );
+
+        }
+      );
 
   }
 
   catch (error) {
 
-    console.log(error);
+    console.warn(
+      "Audio stream unavailable:",
+      error
+    );
 
   }
 
 
-  destination
-    .stream
-    .getAudioTracks()
-    .forEach(track => {
-
-      stream.addTrack(track);
-
-    });
-
-
   /*
+    ========================================================
     MIME TYPE
+    ========================================================
   */
 
   let mimeType =
@@ -1816,7 +2332,7 @@ async function exportVideo() {
 
 
   recorder.ondataavailable =
-    function(event) {
+    event => {
 
       if (
         event.data &&
@@ -1835,28 +2351,16 @@ async function exportVideo() {
   recorder.start(100);
 
 
-  const duration =
-    Number(
-      document.getElementById(
-        "duration"
-      ).value
-    );
-
-
-  const pauseDuration =
-    Number(
-      document.getElementById(
-        "pauseDuration"
-      ).value
-    );
-
-
   /*
+    ========================================================
     RESET
+    ========================================================
   */
 
-  for (const letter of
-       ["A", "B", "C", "D"]) {
+  for (
+    const letter of
+    ["A", "B", "C", "D"]
+  ) {
 
     pieces[letter].fixed =
       false;
@@ -1864,11 +2368,14 @@ async function exportVideo() {
   }
 
 
-  animation = null;
+  animation =
+    null;
 
 
   /*
+    ========================================================
     EXPORT DRAW
+    ========================================================
   */
 
   function exportDraw() {
@@ -1886,18 +2393,26 @@ async function exportVideo() {
     if (animation) {
 
       drawMovingHalf(
+
         animation.source,
+
         animation.x,
+
         animation.y,
+
         exportCtx
+
       );
 
 
-      if (animation.result) {
+      if (
+        animation.result
+      ) {
 
         drawResultIcon(
 
-          animation.result === "right",
+          animation.result ===
+            "right",
 
           animation.iconX,
 
@@ -1915,7 +2430,9 @@ async function exportVideo() {
 
 
   /*
-    MOVE HALF
+    ========================================================
+    EXPORT MOVE
+    ========================================================
   */
 
   async function exportMove(
@@ -1926,19 +2443,40 @@ async function exportVideo() {
 
     const start =
       reverse
-        ? getTargetPosition(target)
-        : getStartPosition(source);
+
+        ? getTargetPosition(
+            target
+          )
+
+        : getStartPosition(
+            source
+          );
 
 
     const end =
       reverse
-        ? getStartPosition(source)
-        : getTargetPosition(target);
+
+        ? getStartPosition(
+            source
+          )
+
+        : getTargetPosition(
+            target
+          );
+
+
+    const duration =
+      Number(
+        document.getElementById(
+          "duration"
+        ).value
+      );
 
 
     const frames =
       Math.max(
         1,
+
         Math.round(
           duration /
           1000 *
@@ -1953,12 +2491,13 @@ async function exportVideo() {
       frame++
     ) {
 
-      const progress =
-        frame / frames;
+      const p =
+        frame /
+        frames;
 
 
       const eased =
-        ease(progress);
+        ease(p);
 
 
       animation = {
@@ -1989,6 +2528,13 @@ async function exportVideo() {
       exportDraw();
 
 
+      progress.style.width =
+        `${Math.min(
+          95,
+          p * 25
+        )}%`;
+
+
       await wait(
         1000 / FPS
       );
@@ -1999,7 +2545,9 @@ async function exportVideo() {
 
 
   /*
+    ========================================================
     EXPORT RESULT
+    ========================================================
   */
 
   async function exportResult(
@@ -2025,9 +2573,13 @@ async function exportVideo() {
 
 
     animation.iconX =
-      pos.x +
-      size.width +
-      125;
+      Math.min(
+        WIDTH - 105,
+
+        pos.x +
+        size.width +
+        115
+      );
 
 
     animation.iconY =
@@ -2036,7 +2588,7 @@ async function exportVideo() {
 
 
     /*
-      PLAY FIXED SOUND
+      PLAY SOUND
     */
 
     const audio =
@@ -2047,11 +2599,18 @@ async function exportVideo() {
 
     try {
 
-      await audioContext.resume();
+      if (audioContext) {
+
+        await audioContext.resume();
+
+      }
+
 
       audio.pause();
 
-      audio.currentTime = 0;
+      audio.currentTime =
+        0;
+
 
       await audio.play();
 
@@ -2059,19 +2618,28 @@ async function exportVideo() {
 
     catch (error) {
 
-      console.log(
-        "Export audio error:",
+      console.warn(
+        "Sound play:",
         error
       );
 
     }
 
 
+    const hold =
+      Number(
+        document.getElementById(
+          "pauseDuration"
+        ).value
+      );
+
+
     const frames =
       Math.max(
         1,
+
         Math.round(
-          pauseDuration /
+          hold /
           1000 *
           FPS
         )
@@ -2079,12 +2647,13 @@ async function exportVideo() {
 
 
     for (
-      let frame = 0;
-      frame < frames;
-      frame++
+      let i = 0;
+      i < frames;
+      i++
     ) {
 
       exportDraw();
+
 
       await wait(
         1000 / FPS
@@ -2093,7 +2662,9 @@ async function exportVideo() {
     }
 
 
-    animation.result = null;
+    animation.result =
+      null;
+
 
     exportDraw();
 
@@ -2101,8 +2672,9 @@ async function exportVideo() {
 
 
   /*
-    SAME SERIES:
-    D → C → B → A
+    ========================================================
+    SERIES D → C → B → A
+    ========================================================
   */
 
   for (
@@ -2126,6 +2698,11 @@ async function exportVideo() {
 
     }
 
+
+    /*
+      Target order:
+      A → B → C → D
+    */
 
     for (
       const target of
@@ -2151,7 +2728,7 @@ async function exportVideo() {
 
 
       /*
-        MOVE
+        Move
       */
 
       await exportMove(
@@ -2162,7 +2739,7 @@ async function exportVideo() {
 
 
       /*
-        CHECK
+        Match
       */
 
       const correct =
@@ -2173,7 +2750,7 @@ async function exportVideo() {
 
 
       /*
-        ICON + SOUND
+        Result
       */
 
       await exportResult(
@@ -2185,7 +2762,7 @@ async function exportVideo() {
 
       /*
         RIGHT:
-        PERMANENTLY FIX
+        FIX IT
       */
 
       if (correct) {
@@ -2194,7 +2771,8 @@ async function exportVideo() {
           true;
 
 
-        animation = null;
+        animation =
+          null;
 
 
         exportDraw();
@@ -2207,7 +2785,7 @@ async function exportVideo() {
 
       /*
         WRONG:
-        RETURN
+        Return
       */
 
       await exportMove(
@@ -2222,19 +2800,23 @@ async function exportVideo() {
 
 
   /*
-    FINAL FRAME
+    Final frame
   */
 
-  animation = null;
+  animation =
+    null;
+
 
   exportDraw();
 
 
-  await wait(1000);
+  await wait(
+    1000
+  );
 
 
   /*
-    STOP RECORDING
+    STOP
   */
 
   recorder.stop();
@@ -2250,17 +2832,25 @@ async function exportVideo() {
   );
 
 
-  try {
+  /*
+    CLOSE AUDIO
+  */
 
-    await audioContext.close();
+  if (audioContext) {
+
+    try {
+
+      await audioContext.close();
+
+    }
+
+    catch (e) {}
 
   }
 
-  catch (error) {}
-
 
   /*
-    CREATE VIDEO
+    CREATE WEBM
   */
 
   const blob =
@@ -2284,7 +2874,9 @@ async function exportVideo() {
     );
 
 
-  link.href = url;
+  link.href =
+    url;
+
 
   link.download =
     "puzzle-video.webm";
@@ -2302,18 +2894,63 @@ async function exportVideo() {
 
 
   setTimeout(
-    () =>
-      URL.revokeObjectURL(url),
-    3000
+    () => {
+
+      URL.revokeObjectURL(
+        url
+      );
+
+    },
+    5000
   );
 
 
-  updateStatus(
-    "Video Ready",
-    "Export complete."
-  );
+  progress.style.width =
+    "100%";
+
+
+  status.textContent =
+    "Video exported successfully.";
+
+
+  button.disabled =
+    false;
+
+
+  button.textContent =
+    "EXPORT VIDEO";
+
+
+  /*
+    Reset preview state
+  */
+
+  for (
+    const letter of
+    ["A", "B", "C", "D"]
+  ) {
+
+    pieces[letter].fixed =
+      false;
+
+  }
+
+
+  draw();
 
 }
+
+
+/* ============================================================
+   ICON LOAD REFRESH
+============================================================ */
+
+rightIcon.onload =
+  () => draw();
+
+
+wrongIcon.onload =
+  () => draw();
 
 
 /* ============================================================
