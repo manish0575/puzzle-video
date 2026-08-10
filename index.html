@@ -1,76 +1,167 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>9:16 Puzzle Maker</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Half Match Puzzle</title>
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+
 <div class="app">
-  <div class="panel">
-    <h1>9:16 Puzzle Maker</h1>
+
+  <!-- LEFT CONTROL PANEL -->
+  <div class="controls">
+
+    <h1>Half Match Puzzle</h1>
 
     <label>Background Image</label>
     <input type="file" id="backgroundInput" accept="image/*">
 
-    <div class="grid">
-      <div><label>A PNG</label><input type="file" id="inputA" accept="image/*"></div>
-      <div><label>B PNG</label><input type="file" id="inputB" accept="image/*"></div>
-      <div><label>C PNG</label><input type="file" id="inputC" accept="image/*"></div>
-      <div><label>D PNG</label><input type="file" id="inputD" accept="image/*"></div>
+    <div class="upload-grid">
+
+      <div>
+        <label>A PNG</label>
+        <input type="file" id="inputA" accept="image/png,image/*">
+      </div>
+
+      <div>
+        <label>B PNG</label>
+        <input type="file" id="inputB" accept="image/png,image/*">
+      </div>
+
+      <div>
+        <label>C PNG</label>
+        <input type="file" id="inputC" accept="image/png,image/*">
+      </div>
+
+      <div>
+        <label>D PNG</label>
+        <input type="file" id="inputD" accept="image/png,image/*">
+      </div>
+
     </div>
 
-    <label>Animation Order</label>
-    <input id="animationOrder" value="C,B,A,D">
+    <label>Split Percentage</label>
 
-    <label>Target Order</label>
-    <input id="targetOrder" value="A,B,C,D">
+    <div class="range-row">
+      <input
+        type="range"
+        id="splitRange"
+        min="30"
+        max="50"
+        value="50"
+      >
 
-    <label>Split: <span id="splitValue">50</span>%</label>
-    <input id="splitRange" type="range" min="30" max="70" value="50">
+      <span id="splitValue">50%</span>
+    </div>
 
-    <label>Image Size: <span id="sizeValue">340</span> px</label>
-    <input id="sizeRange" type="range" min="250" max="550" value="340">
+    <label>Image Size</label>
 
-    <label>Move Duration (ms)</label>
-    <input id="duration" type="number" value="1500" min="300" step="100">
+    <div class="range-row">
+      <input
+        type="range"
+        id="sizeRange"
+        min="250"
+        max="700"
+        value="420"
+      >
 
-    <label>Result Hold (ms)</label>
-    <input id="pauseDuration" type="number" value="1000" min="200" step="100">
+      <span id="sizeValue">420px</span>
+    </div>
 
-    <label>Animation Direction</label>
-    <select id="direction">
-      <option value="top-right">Top Right</option>
-      <option value="top">Top Center</option>
-      <option value="right">Right</option>
-      <option value="left">Left</option>
-    </select>
+    <label>Animation Speed</label>
 
-    <h2>Match Rules</h2>
+    <input
+      type="number"
+      id="duration"
+      value="1500"
+      min="500"
+      max="5000"
+      step="100"
+    >
+
+    <label>Wrong / Right Hold</label>
+
+    <input
+      type="number"
+      id="pauseDuration"
+      value="900"
+      min="300"
+      max="3000"
+      step="100"
+    >
+
+    <h2>Matching Rules</h2>
+
     <div id="rulesContainer"></div>
 
-    <h2>Animation Flow</h2>
-    <div id="flowContainer"></div>
+    <h2>Series</h2>
 
-    <div class="buttons">
-      <button id="previewBtn">▶ Preview</button>
-      <button id="pauseBtn">⏸ Pause</button>
-      <button id="restartBtn">↻ Restart</button>
-      <button id="exportBtn">⬇ Export Video</button>
+    <div class="series-box">
+      <span>D</span>
+      <span>→</span>
+      <span>C</span>
+      <span>→</span>
+      <span>B</span>
+      <span>→</span>
+      <span>A</span>
     </div>
 
-    <div id="statusTitle">Ready</div>
-    <div id="statusMessage">Upload your background and PNG pieces.</div>
-    <div id="exportStatus"></div>
-    <div class="progress"><div id="progressBar"></div></div>
+    <div class="buttons">
+
+      <button id="previewBtn">
+        ▶ Preview
+      </button>
+
+      <button id="pauseBtn">
+        ⏸ Pause
+      </button>
+
+      <button id="restartBtn">
+        ↻ Restart
+      </button>
+
+      <button id="exportBtn">
+        ⬇ Export Video
+      </button>
+
+    </div>
+
+    <div class="status">
+      <div id="statusTitle">Ready</div>
+      <div id="statusMessage">
+        Background aur PNG images upload karo.
+      </div>
+    </div>
+
+    <div class="export-status" id="exportStatus"></div>
+
+    <div class="progress">
+      <div id="progressBar"></div>
+    </div>
+
   </div>
 
-  <div class="preview">
-    <canvas id="canvas" width="1080" height="1920"></canvas>
+
+  <!-- PREVIEW -->
+  <div class="preview-area">
+
+    <canvas
+      id="canvas"
+      width="1080"
+      height="1920"
+    ></canvas>
+
   </div>
+
 </div>
 
 <script src="script.js"></script>
+<script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
+<script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
+<script src="script.js"></script>
+
 </body>
 </html>
