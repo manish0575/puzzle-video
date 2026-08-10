@@ -1,1 +1,308 @@
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#111;color:#eee}.app{display:flex;gap:20px;padding:14px;min-height:100vh}.panel{width:430px;padding:18px;background:#1b1b1b;border-radius:14px;overflow-y:auto;max-height:calc(100vh - 28px)}.preview{flex:1;display:flex;justify-content:center;align-items:flex-start}canvas{width:min(48vh,540px);height:auto;max-height:calc(100vh - 28px);background:#000;border-radius:12px}h1,h2{margin-top:0}h2{margin-top:18px;font-size:16px}label{display:block;margin:9px 0 5px;font-size:13px}input,select,button{width:100%;padding:9px;border-radius:8px;border:1px solid #444;background:#252525;color:#fff}input[type=range]{padding:0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}button{cursor:pointer}.rule-table{width:100%;border-collapse:collapse;font-size:11px}.rule-table th,.rule-table td{border:1px solid #333;padding:4px;text-align:center}.rule-btn{padding:6px 3px;font-size:10px}.flow-item{padding:7px;margin:4px 0;background:#252525;border-radius:6px}#statusTitle{margin-top:14px;font-weight:bold}#statusMessage,#exportStatus{margin-top:5px;color:#aaa;font-size:12px}.progress{margin-top:10px;height:6px;background:#333;border-radius:10px;overflow:hidden}#progressBar{width:0;height:100%;background:#24c879}@media(max-width:900px){.app{flex-direction:column}.panel{width:100%;max-height:none}.preview{width:100%}}
+* {
+    box-sizing: border-box;
+  }
+  
+  body {
+    margin: 0;
+    background: #101010;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  
+  .app {
+    min-height: 100vh;
+    display: flex;
+    gap: 18px;
+    padding: 12px;
+  }
+  
+  
+  /* =========================
+     CONTROL PANEL
+  ========================= */
+  
+  .controls {
+    width: 430px;
+    max-height: calc(100vh - 24px);
+  
+    overflow-y: auto;
+  
+    background: #1b1b1b;
+  
+    border-radius: 14px;
+  
+    padding: 18px;
+  }
+  
+  .controls h1 {
+    margin: 0 0 15px;
+    font-size: 24px;
+  }
+  
+  .controls h2 {
+    margin: 18px 0 9px;
+    font-size: 15px;
+  }
+  
+  
+  label {
+    display: block;
+  
+    margin-top: 9px;
+    margin-bottom: 5px;
+  
+    font-size: 13px;
+    color: #ddd;
+  }
+  
+  
+  input,
+  select,
+  button {
+    width: 100%;
+  
+    border: 1px solid #444;
+  
+    border-radius: 8px;
+  
+    background: #252525;
+  
+    color: white;
+  
+    padding: 9px;
+  }
+  
+  
+  input[type="range"] {
+    padding: 0;
+  }
+  
+  
+  .upload-grid {
+    display: grid;
+  
+    grid-template-columns: 1fr 1fr;
+  
+    gap: 9px;
+  }
+  
+  
+  .range-row {
+    display: flex;
+  
+    align-items: center;
+  
+    gap: 10px;
+  }
+  
+  .range-row input {
+    flex: 1;
+  }
+  
+  .range-row span {
+    width: 55px;
+  
+    font-size: 12px;
+  
+    color: #aaa;
+  }
+  
+  
+  /* =========================
+     SERIES
+  ========================= */
+  
+  .series-box {
+    display: flex;
+  
+    justify-content: center;
+  
+    align-items: center;
+  
+    gap: 9px;
+  
+    padding: 12px;
+  
+    border-radius: 9px;
+  
+    background: #252525;
+  
+    font-weight: bold;
+  }
+  
+  .series-box span:nth-child(even) {
+    color: #777;
+  }
+  
+  
+  /* =========================
+     BUTTONS
+  ========================= */
+  
+  .buttons {
+    display: grid;
+  
+    grid-template-columns: 1fr 1fr;
+  
+    gap: 8px;
+  
+    margin-top: 17px;
+  }
+  
+  button {
+    cursor: pointer;
+  
+    transition: .15s;
+  }
+  
+  button:hover {
+    background: #333;
+  }
+  
+  button:active {
+    transform: scale(.98);
+  }
+  
+  
+  /* =========================
+     RULE TABLE
+  ========================= */
+  
+  .rule-table {
+    width: 100%;
+  
+    border-collapse: collapse;
+  
+    font-size: 11px;
+  }
+  
+  .rule-table th,
+  .rule-table td {
+    border: 1px solid #333;
+  
+    padding: 4px;
+  
+    text-align: center;
+  }
+  
+  .rule-button {
+    padding: 7px 2px;
+  
+    font-size: 10px;
+  }
+  
+  .rule-button.right {
+    background: #124e30;
+  }
+  
+  .rule-button.wrong {
+    background: #4d1818;
+  }
+  
+  
+  /* =========================
+     STATUS
+  ========================= */
+  
+  .status {
+    margin-top: 14px;
+  }
+  
+  #statusTitle {
+    font-weight: bold;
+  
+    font-size: 14px;
+  }
+  
+  #statusMessage {
+    margin-top: 4px;
+  
+    color: #999;
+  
+    font-size: 12px;
+  }
+  
+  .export-status {
+    margin-top: 7px;
+  
+    font-size: 12px;
+  
+    color: #aaa;
+  }
+  
+  
+  /* =========================
+     PROGRESS
+  ========================= */
+  
+  .progress {
+    height: 6px;
+  
+    margin-top: 8px;
+  
+    border-radius: 20px;
+  
+    background: #333;
+  
+    overflow: hidden;
+  }
+  
+  #progressBar {
+    width: 0%;
+  
+    height: 100%;
+  
+    background: #25ca78;
+  }
+  
+  
+  /* =========================
+     CANVAS
+  ========================= */
+  
+  .preview-area {
+    flex: 1;
+  
+    display: flex;
+  
+    justify-content: center;
+  
+    align-items: flex-start;
+  }
+  
+  #canvas {
+    width: min(520px, 48vh);
+  
+    height: auto;
+  
+    border-radius: 12px;
+  
+    background: black;
+  }
+  
+  
+  /* =========================
+     MOBILE
+  ========================= */
+  
+  @media (max-width: 900px) {
+  
+    .app {
+      flex-direction: column;
+    }
+  
+    .controls {
+      width: 100%;
+  
+      max-height: none;
+    }
+  
+    .preview-area {
+      width: 100%;
+    }
+  
+    #canvas {
+      width: min(100%, 520px);
+    }
+  
+  }
