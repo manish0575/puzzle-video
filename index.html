@@ -3,160 +3,588 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Half Match Puzzle</title>
+
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<div class="app">
+<div class="page">
 
-  <!-- LEFT CONTROL PANEL -->
-  <div class="controls">
+  <!-- =====================================================
+       HEADER
+  ====================================================== -->
 
-    <h1>Half Match Puzzle</h1>
-
-    <label>Background Image</label>
-    <input type="file" id="backgroundInput" accept="image/*">
-
-    <div class="upload-grid">
-
-      <div>
-        <label>A PNG</label>
-        <input type="file" id="inputA" accept="image/png,image/*">
-      </div>
-
-      <div>
-        <label>B PNG</label>
-        <input type="file" id="inputB" accept="image/png,image/*">
-      </div>
-
-      <div>
-        <label>C PNG</label>
-        <input type="file" id="inputC" accept="image/png,image/*">
-      </div>
-
-      <div>
-        <label>D PNG</label>
-        <input type="file" id="inputD" accept="image/png,image/*">
-      </div>
-
+  <header class="top-header">
+    <div>
+      <h1>HALF MATCH PUZZLE</h1>
+      <p>Example: D → C → B → A</p>
     </div>
 
-    <label>Split Percentage</label>
+    <div class="header-badge">
+      9:16 VIDEO
+    </div>
+  </header>
 
-    <div class="range-row">
-      <input
-        type="range"
-        id="splitRange"
-        min="30"
-        max="50"
-        value="50"
+
+  <!-- =====================================================
+       MAIN LAYOUT
+  ====================================================== -->
+
+  <main class="main-layout">
+
+
+    <!-- ===================================================
+         LEFT SETUP PANEL
+    ==================================================== -->
+
+    <section class="panel setup-panel">
+
+      <div class="panel-title">
+        SETUP PANEL
+        <span>(YOU CAN CUSTOMIZE)</span>
+      </div>
+
+
+      <!-- ================= UPLOADS ================= -->
+
+      <div class="section-title">
+        1. UPLOADS
+      </div>
+
+
+      <label class="field-label">
+        Background (9:16)
+      </label>
+
+      <div class="background-upload">
+
+        <div
+          class="background-preview"
+          id="backgroundPreview"
+        >
+          <span>BG</span>
+        </div>
+
+        <label class="upload-button">
+          Upload
+          <input
+            type="file"
+            id="backgroundInput"
+            accept="image/*"
+            hidden
+          >
+        </label>
+
+      </div>
+
+
+      <label class="field-label">
+        Letters PNG (Whole Images)
+      </label>
+
+      <div class="letter-upload-row">
+
+        <!-- A -->
+
+        <label class="letter-card">
+
+          <div
+            class="letter-thumb"
+            id="thumbA"
+          >
+            A
+          </div>
+
+          <input
+            type="file"
+            id="inputA"
+            accept="image/png,image/*"
+            hidden
+          >
+
+          <span>A</span>
+
+        </label>
+
+
+        <!-- B -->
+
+        <label class="letter-card">
+
+          <div
+            class="letter-thumb"
+            id="thumbB"
+          >
+            B
+          </div>
+
+          <input
+            type="file"
+            id="inputB"
+            accept="image/png,image/*"
+            hidden
+          >
+
+          <span>B</span>
+
+        </label>
+
+
+        <!-- C -->
+
+        <label class="letter-card">
+
+          <div
+            class="letter-thumb"
+            id="thumbC"
+          >
+            C
+          </div>
+
+          <input
+            type="file"
+            id="inputC"
+            accept="image/png,image/*"
+            hidden
+          >
+
+          <span>C</span>
+
+        </label>
+
+
+        <!-- D -->
+
+        <label class="letter-card">
+
+          <div
+            class="letter-thumb"
+            id="thumbD"
+          >
+            D
+          </div>
+
+          <input
+            type="file"
+            id="inputD"
+            accept="image/png,image/*"
+            hidden
+          >
+
+          <span>D</span>
+
+        </label>
+
+      </div>
+
+
+      <div class="divider"></div>
+
+
+      <!-- ================= SPLIT SETTINGS ================= -->
+
+      <div class="section-title">
+        2. SPLIT SETTINGS
+      </div>
+
+
+      <div class="two-column">
+
+        <div>
+
+          <label class="field-label">
+            Split Percentage
+          </label>
+
+          <select id="splitRange">
+
+            <option value="30">
+              30% (Half)
+            </option>
+
+            <option value="35">
+              35%
+            </option>
+
+            <option value="40">
+              40%
+            </option>
+
+            <option value="45">
+              45%
+            </option>
+
+            <option value="50" selected>
+              50% (Half)
+            </option>
+
+            <option value="60" >
+              60% 
+            </option>
+
+            <option value="70" >
+              70% 
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div>
+
+          <label class="field-label">
+            Animation Duration (ms)
+          </label>
+
+          <input
+            type="number"
+            id="duration"
+            value="1800"
+            min="300"
+            max="5000"
+            step="100"
+          >
+
+        </div>
+
+      </div>
+
+
+      <div class="two-column">
+
+        <div>
+
+          <label class="field-label">
+            Image Size
+          </label>
+
+          <input
+            type="range"
+            id="sizeRange"
+            min="220"
+            max="700"
+            value="500"
+          >
+
+          <div class="range-value">
+            <span id="sizeValue">500px</span>
+          </div>
+
+        </div>
+
+
+        <div>
+
+          <label class="field-label">
+            Result Hold (ms)
+          </label>
+
+          <input
+            type="number"
+            id="pauseDuration"
+            value="1200"
+            min="300"
+            max="3000"
+            step="100"
+          >
+
+        </div>
+
+      </div>
+
+
+      <div class="divider"></div>
+
+
+      <!-- ================= PUZZLE RULES ================= -->
+
+      <div class="section-title">
+        3. PUZZLE RULES
+        <small>(MATCHING ORDER)</small>
+      </div>
+
+      <div class="rule-info">
+        True = Match (Right)
+        &nbsp;&nbsp;
+        False = Wrong
+      </div>
+
+      <div id="rulesContainer"></div>
+
+
+      <div class="divider"></div>
+
+
+      <!-- ================= FIXED ICONS ================= -->
+
+      <div class="section-title">
+        4. ICONS & SOUNDS
+      </div>
+
+
+      <div class="fixed-assets">
+
+        <div class="asset-box">
+
+          <div class="asset-name">
+            Wrong Icon
+          </div>
+
+          <img
+            id="wrongIconPreview"
+            src="assets/wrong.png"
+            alt="Wrong"
+          >
+
+          <small>
+            assets/wrong.png
+          </small>
+
+        </div>
+
+
+        <div class="asset-box">
+
+          <div class="asset-name">
+            Right Icon
+          </div>
+
+          <img
+            id="rightIconPreview"
+            src="assets/right.png"
+            alt="Right"
+          >
+
+          <small>
+            assets/right.png
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <div class="sound-list">
+
+        <div>
+          <b>Wrong Sound</b>
+          <small>assets/wrong.mp3</small>
+        </div>
+
+        <div>
+          <b>Right Sound</b>
+          <small>assets/right.mp3</small>
+        </div>
+
+      </div>
+
+
+      <!-- ================= PREVIEW BUTTON ================= -->
+
+      <button
+        class="primary-button"
+        id="previewBtn"
       >
-
-      <span id="splitValue">50%</span>
-    </div>
-
-    <label>Image Size</label>
-
-    <div class="range-row">
-      <input
-        type="range"
-        id="sizeRange"
-        min="250"
-        max="700"
-        value="420"
-      >
-
-      <span id="sizeValue">420px</span>
-    </div>
-
-    <label>Animation Speed</label>
-
-    <input
-      type="number"
-      id="duration"
-      value="1500"
-      min="500"
-      max="5000"
-      step="100"
-    >
-
-    <label>Wrong / Right Hold</label>
-
-    <input
-      type="number"
-      id="pauseDuration"
-      value="900"
-      min="300"
-      max="3000"
-      step="100"
-    >
-
-    <h2>Matching Rules</h2>
-
-    <div id="rulesContainer"></div>
-
-    <h2>Series</h2>
-
-    <div class="series-box">
-      <span>D</span>
-      <span>→</span>
-      <span>C</span>
-      <span>→</span>
-      <span>B</span>
-      <span>→</span>
-      <span>A</span>
-    </div>
-
-    <div class="buttons">
-
-      <button id="previewBtn">
-        ▶ Preview
+        ▶ PREVIEW ANIMATION
       </button>
 
-      <button id="pauseBtn">
-        ⏸ Pause
-      </button>
+    </section>
 
-      <button id="restartBtn">
-        ↻ Restart
-      </button>
 
-      <button id="exportBtn">
-        ⬇ Export Video
-      </button>
 
-    </div>
+    <!-- ===================================================
+         CENTER PREVIEW
+    ==================================================== -->
 
-    <div class="status">
-      <div id="statusTitle">Ready</div>
-      <div id="statusMessage">
-        Background aur PNG images upload karo.
+    <section class="preview-column">
+
+      <div class="phone-frame">
+
+        <canvas
+          id="canvas"
+          width="1080"
+          height="1920"
+        ></canvas>
+
       </div>
-    </div>
-
-    <div class="export-status" id="exportStatus"></div>
-
-    <div class="progress">
-      <div id="progressBar"></div>
-    </div>
-
-  </div>
 
 
-  <!-- PREVIEW -->
-  <div class="preview-area">
+      <div class="preview-controls">
 
-    <canvas
-      id="canvas"
-      width="1080"
-      height="1920"
-    ></canvas>
+        <button id="playBtn">
+          ▶ Play
+        </button>
 
-  </div>
+        <button id="pauseBtn">
+          ‖ Pause
+        </button>
+
+        <button id="resetBtn">
+          ↻ Reset
+        </button>
+
+      </div>
+
+
+      <div class="status-box">
+
+        <strong id="statusTitle">
+          Ready
+        </strong>
+
+        <span id="statusMessage">
+          Upload background and PNG images.
+        </span>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- ===================================================
+         RIGHT INFORMATION PANEL
+    ==================================================== -->
+
+    <section class="right-column">
+
+
+      <!-- ANIMATION FLOW -->
+
+      <div class="panel info-panel">
+
+        <div class="panel-title">
+          ANIMATION FLOW
+          <span>(EXAMPLE)</span>
+        </div>
+
+
+        <ol class="flow-list">
+
+          <li>
+            D-right → try A
+            <b class="wrong-text">✕ Wrong</b>
+          </li>
+
+          <li>
+            D-right → try D
+            <b class="right-text">✓ Right</b>
+            <small>(D fixed)</small>
+          </li>
+
+          <li>
+            C-right → try C
+            <b class="right-text">✓ Right</b>
+            <small>(C fixed)</small>
+          </li>
+
+          <li>
+            B-right → try B
+            <b class="right-text">✓ Right</b>
+            <small>(B fixed)</small>
+          </li>
+
+          <li>
+            A-right → try A
+            <b class="right-text">✓ Right</b>
+            <small>(A fixed)</small>
+          </li>
+
+          <li>
+            All matched → Word complete
+          </li>
+
+        </ol>
+
+      </div>
+
+
+
+      <!-- EXPORT -->
+
+      <div class="panel export-panel">
+
+        <div class="panel-title">
+          EXPORT VIDEO
+        </div>
+
+
+        <label class="field-label">
+          Resolution
+        </label>
+
+        <select id="resolution">
+
+          <option value="1080x1920">
+            1080×1920 (9:16)
+          </option>
+
+        </select>
+
+
+        <button
+          class="export-button"
+          id="exportBtn"
+        >
+          EXPORT VIDEO
+        </button>
+
+
+        <div
+          class="export-status"
+          id="exportStatus"
+        ></div>
+
+
+        <div class="progress">
+          <div
+            id="progressBar"
+          ></div>
+        </div>
+
+      </div>
+
+
+
+      <!-- FEATURES -->
+
+      <div class="panel features-panel">
+
+        <div class="panel-title">
+          FEATURES
+        </div>
+
+
+        <ul>
+
+          <li>✓ Upload Background (9:16)</li>
+
+          <li>✓ Upload Letter PNGs</li>
+
+          <li>✓ Auto Half Split</li>
+
+          <li>✓ Custom Matching Rules</li>
+
+          <li>✓ Smooth Animation</li>
+
+          <li>✓ Wrong/Right Sound & Icon</li>
+
+          <li>✓ Export Video</li>
+
+        </ul>
+
+      </div>
+
+    </section>
+
+  </main>
 
 </div>
+
 
 <script src="script.js"></script>
 
