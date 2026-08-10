@@ -62,6 +62,63 @@ wrongSound.preload = "auto";
 
 
 /* ============================================================
+   BACKGROUND / LOOP SOUND
+============================================================ */
+
+let backgroundSound = null;
+
+let backgroundSoundURL = null;
+
+
+function setBackgroundSound(file) {
+
+  if (backgroundSound) {
+
+    backgroundSound.pause();
+
+    backgroundSound.currentTime =
+      0;
+
+  }
+
+
+  if (backgroundSoundURL) {
+
+    URL.revokeObjectURL(
+      backgroundSoundURL
+    );
+
+  }
+
+
+  backgroundSound = null;
+
+  backgroundSoundURL = null;
+
+
+  if (!file) return;
+
+
+  backgroundSoundURL =
+    URL.createObjectURL(file);
+
+
+  backgroundSound =
+    new Audio(
+      backgroundSoundURL
+    );
+
+
+  backgroundSound.preload =
+    "auto";
+
+  backgroundSound.loop =
+    true;
+
+}
+
+
+/* ============================================================
    IMAGES
 ============================================================ */
 
@@ -95,15 +152,17 @@ let backgroundImage = null;
 
 /* ============================================================
    SERIES
-   IMPORTANT:
+
    D → C → B → A
 ============================================================ */
 
 const SERIES = [
+
   "D",
   "C",
   "B",
   "A"
+
 ];
 
 
@@ -114,31 +173,39 @@ const SERIES = [
 const matchRules = {
 
   A: {
+
     A: true,
     B: false,
     C: false,
     D: false
+
   },
 
   B: {
+
     A: false,
     B: true,
     C: false,
     D: false
+
   },
 
   C: {
+
     A: false,
     B: false,
     C: true,
     D: false
+
   },
 
   D: {
+
     A: false,
     B: false,
     C: false,
     D: true
+
   }
 
 };
@@ -162,11 +229,14 @@ let paused = false;
 function wait(ms) {
 
   return new Promise(
+
     resolve =>
+
       setTimeout(
         resolve,
         ms
       )
+
   );
 
 }
@@ -179,6 +249,7 @@ function wait(ms) {
 function readImage(file) {
 
   return new Promise(
+
     (resolve, reject) => {
 
       if (!file) {
@@ -210,17 +281,108 @@ function readImage(file) {
         URL.createObjectURL(file);
 
     }
+
   );
 
 }
 
 
 /* ============================================================
-   BACKGROUND UPLOAD
+   BACKGROUND SOUND UPLOAD UI
+
+   Fixed right/wrong sounds stay in assets.
+
+   Background sound upload option JS se automatically
+   create hota hai, isliye HTML change karna zaroori nahi.
+============================================================ */
+
+(function createBackgroundSoundUI() {
+
+  const exportButton =
+    document.getElementById(
+      "exportBtn"
+    );
+
+
+  if (!exportButton) return;
+
+
+  const wrapper =
+    document.createElement(
+      "div"
+    );
+
+
+  wrapper.style.marginTop =
+    "8px";
+
+
+  wrapper.innerHTML = `
+
+    <label
+      style="
+        display:block;
+        margin-bottom:5px;
+      "
+    >
+      Background / Loop Sound
+    </label>
+
+    <input
+      type="file"
+      id="backgroundSoundInput"
+      accept="audio/*"
+    >
+
+  `;
+
+
+  exportButton.parentElement
+    .insertBefore(
+      wrapper,
+      exportButton
+    );
+
+
+  document
+    .getElementById(
+      "backgroundSoundInput"
+    )
+    .addEventListener(
+      "change",
+      event => {
+
+        const file =
+          event.target.files[0];
+
+
+        if (!file) return;
+
+
+        setBackgroundSound(
+          file
+        );
+
+
+        updateStatus(
+          "Background audio ready",
+          "Loop sound uploaded successfully."
+        );
+
+      }
+    );
+
+})();
+
+
+/* ============================================================
+   BACKGROUND IMAGE UPLOAD
 ============================================================ */
 
 document
-  .getElementById("backgroundInput")
+  .getElementById(
+    "backgroundInput"
+  )
   .addEventListener(
     "change",
     async event => {
@@ -233,7 +395,9 @@ document
 
 
       backgroundImage =
-        await readImage(file);
+        await readImage(
+          file
+        );
 
 
       const preview =
@@ -287,8 +451,14 @@ document
    LETTER UPLOAD
 ============================================================ */
 
-["A", "B", "C", "D"]
+[
+  "A",
+  "B",
+  "C",
+  "D"
+]
 .forEach(
+
   letter => {
 
     document
@@ -307,7 +477,9 @@ document
 
 
           pieces[letter].image =
-            await readImage(file);
+            await readImage(
+              file
+            );
 
 
           pieces[letter].fixed =
@@ -328,6 +500,7 @@ document
       );
 
   }
+
 );
 
 
@@ -401,7 +574,8 @@ sizeRange.addEventListener(
   () => {
 
     sizeValue.textContent =
-      sizeRange.value + "px";
+      sizeRange.value +
+      "px";
 
 
     draw();
@@ -417,14 +591,19 @@ sizeRange.addEventListener(
 function getUploadedLetters() {
 
   return [
+
     "A",
     "B",
     "C",
     "D"
+
   ]
+
   .filter(
+
     letter =>
       !!pieces[letter].image
+
   );
 
 }
@@ -432,13 +611,6 @@ function getUploadedLetters() {
 
 /* ============================================================
    SAFE IMAGE SIZE
-
-   IMPORTANT BUG FIX:
-
-   Image ko requested size se bada nahi hone dena
-   agar available vertical space kam ho.
-
-   Isse image top se bahar nahi jayegi.
 ============================================================ */
 
 function getImageSize(
@@ -448,8 +620,10 @@ function getImageSize(
   if (!img) {
 
     return {
+
       width: 0,
       height: 0
+
     };
 
   }
@@ -472,11 +646,6 @@ function getImageSize(
     );
 
 
-  /*
-    Top/bottom safe area.
-    Pehle wale se top margin kam rakha hai.
-  */
-
   const top =
     120;
 
@@ -485,10 +654,6 @@ function getImageSize(
     1710;
 
 
-  /*
-    Small gap between A/B/C/D.
-  */
-
   const gap =
     35;
 
@@ -496,18 +661,14 @@ function getImageSize(
   const available =
     bottom -
     top -
-    gap * (count - 1);
+    gap *
+      (count - 1);
 
 
   const maxHeight =
-    available / count;
+    available /
+    count;
 
-
-  /*
-    Main bug fix:
-    Requested size agar available area se bada hai,
-    automatically fit ho jayega.
-  */
 
   const height =
     Math.min(
@@ -524,7 +685,8 @@ function getImageSize(
   return {
 
     width:
-      height * ratio,
+      height *
+      ratio,
 
     height
 
@@ -535,9 +697,6 @@ function getImageSize(
 
 /* ============================================================
    SLOT POSITIONS
-
-   IMPORTANT BUG FIX:
-   A/B/C/D ke beech extra space kam.
 ============================================================ */
 
 function getSlot(
@@ -557,8 +716,10 @@ function getSlot(
   if (index === -1) {
 
     return {
+
       x: 70,
       y: 190
+
     };
 
   }
@@ -589,24 +750,30 @@ function getSlot(
   const available =
     bottom -
     top -
-    gap * (count - 1);
+    gap *
+      (count - 1);
 
 
   const actualHeight =
     Math.min(
-      Number(sizeRange.value),
-      available / count
+
+      Number(
+        sizeRange.value
+      ),
+
+      available /
+        count
+
     );
 
-
-  /*
-    Equal compact spacing.
-  */
 
   const y =
     top +
     index *
-      (actualHeight + gap);
+      (
+        actualHeight +
+        gap
+      );
 
 
   return {
@@ -629,10 +796,12 @@ function drawBackground(
 ) {
 
   target.clearRect(
+
     0,
     0,
     WIDTH,
     HEIGHT
+
   );
 
 
@@ -643,47 +812,55 @@ function drawBackground(
 
 
     target.fillRect(
+
       0,
       0,
       WIDTH,
       HEIGHT
+
     );
 
 
-    /*
-      Demo-style placeholder.
-    */
-
     const gradient =
       target.createLinearGradient(
+
         0,
         0,
         0,
         HEIGHT
+
       );
 
 
     gradient.addColorStop(
+
       0,
       "#0755ff"
+
     );
 
 
     gradient.addColorStop(
+
       .52,
       "#3c92f0"
+
     );
 
 
     gradient.addColorStop(
+
       .53,
       "#6ab437"
+
     );
 
 
     gradient.addColorStop(
+
       1,
       "#32931d"
+
     );
 
 
@@ -692,10 +869,12 @@ function drawBackground(
 
 
     target.fillRect(
+
       0,
       0,
       WIDTH,
       HEIGHT
+
     );
 
 
@@ -706,11 +885,13 @@ function drawBackground(
 
   const scale =
     Math.max(
+
       WIDTH /
         backgroundImage.width,
 
       HEIGHT /
         backgroundImage.height
+
     );
 
 
@@ -733,7 +914,6 @@ function drawBackground(
     (HEIGHT - h) / 2,
 
     w,
-
     h
 
   );
@@ -758,18 +938,26 @@ function drawLeftHalf(
 
 
   const size =
-    getImageSize(img);
+    getImageSize(
+      img
+    );
 
 
   const pos =
-    getSlot(letter);
+    getSlot(
+      letter
+    );
 
 
   const split =
     Number(
-      document.getElementById(
-        "splitRange"
-      ).value
+
+      document
+        .getElementById(
+          "splitRange"
+        )
+        .value
+
     ) / 100;
 
 
@@ -788,19 +976,15 @@ function drawLeftHalf(
     img,
 
     0,
-
     0,
 
     sourceWidth,
-
     img.height,
 
     pos.x,
-
     pos.y,
 
     drawWidth,
-
     size.height
 
   );
@@ -825,11 +1009,15 @@ function drawCompletePiece(
 
 
   const size =
-    getImageSize(img);
+    getImageSize(
+      img
+    );
 
 
   const pos =
-    getSlot(letter);
+    getSlot(
+      letter
+    );
 
 
   target.drawImage(
@@ -837,11 +1025,9 @@ function drawCompletePiece(
     img,
 
     pos.x,
-
     pos.y,
 
     size.width,
-
     size.height
 
   );
@@ -868,14 +1054,20 @@ function drawMovingHalf(
 
 
   const size =
-    getImageSize(img);
+    getImageSize(
+      img
+    );
 
 
   const split =
     Number(
-      document.getElementById(
-        "splitRange"
-      ).value
+
+      document
+        .getElementById(
+          "splitRange"
+        )
+        .value
+
     ) / 100;
 
 
@@ -899,19 +1091,15 @@ function drawMovingHalf(
     img,
 
     sourceX,
-
     0,
 
     sourceWidth,
-
     img.height,
 
     x,
-
     y,
 
     drawWidth,
-
     size.height
 
   );
@@ -928,8 +1116,15 @@ function drawPieces(
 ) {
 
   for (
+
     const letter of
-    ["A", "B", "C", "D"]
+    [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+
   ) {
 
     if (
@@ -968,8 +1163,6 @@ function drawPieces(
 
 /* ============================================================
    RESULT ICON
-
-   Icon target image ke just saamne.
 ============================================================ */
 
 function drawResultIcon(
@@ -986,12 +1179,14 @@ function drawResultIcon(
 
 
   const size =
-    175;
+    275;
 
 
   if (
+
     icon.complete &&
     icon.naturalWidth
+
   ) {
 
     target.drawImage(
@@ -999,11 +1194,9 @@ function drawResultIcon(
       icon,
 
       x - size / 2,
-
       y - size / 2,
 
       size,
-
       size
 
     );
@@ -1013,10 +1206,6 @@ function drawResultIcon(
 
   }
 
-
-  /*
-    Fallback
-  */
 
   target.save();
 
@@ -1046,7 +1235,6 @@ function drawResultIcon(
       : "✕",
 
     x,
-
     y
 
   );
@@ -1104,8 +1292,6 @@ function draw() {
 
 /* ============================================================
    START POSITION
-
-   Top-right.
 ============================================================ */
 
 function getStartPosition(
@@ -1117,14 +1303,20 @@ function getStartPosition(
 
 
   const size =
-    getImageSize(img);
+    getImageSize(
+      img
+    );
 
 
   const split =
     Number(
-      document.getElementById(
-        "splitRange"
-      ).value
+
+      document
+        .getElementById(
+          "splitRange"
+        )
+        .value
+
     ) / 100;
 
 
@@ -1161,18 +1353,26 @@ function getTargetPosition(
 
 
   const size =
-    getImageSize(img);
+    getImageSize(
+      img
+    );
 
 
   const pos =
-    getSlot(target);
+    getSlot(
+      target
+    );
 
 
   const split =
     Number(
-      document.getElementById(
-        "splitRange"
-      ).value
+
+      document
+        .getElementById(
+          "splitRange"
+        )
+        .value
+
     ) / 100;
 
 
@@ -1220,6 +1420,7 @@ function animateHalf(
 ) {
 
   return new Promise(
+
     resolve => {
 
       const start =
@@ -1236,9 +1437,13 @@ function animateHalf(
 
       const duration =
         Number(
-          document.getElementById(
-            "duration"
-          ).value
+
+          document
+            .getElementById(
+              "duration"
+            )
+            .value
+
         );
 
 
@@ -1261,15 +1466,22 @@ function animateHalf(
 
         const progress =
           Math.min(
+
             1,
 
-            (now - startTime) /
+            (
+              now -
+              startTime
+            ) /
             duration
+
           );
 
 
         const eased =
-          ease(progress);
+          ease(
+            progress
+          );
 
 
         animation = {
@@ -1280,12 +1492,18 @@ function animateHalf(
 
           x:
             start.x +
-            (end.x - start.x) *
+            (
+              end.x -
+              start.x
+            ) *
             eased,
 
           y:
             start.y +
-            (end.y - start.y) *
+            (
+              end.y -
+              start.y
+            ) *
             eased,
 
           result: null,
@@ -1324,6 +1542,7 @@ function animateHalf(
       );
 
     }
+
   );
 
 }
@@ -1339,6 +1558,7 @@ function returnHalf(
 ) {
 
   return new Promise(
+
     resolve => {
 
       const start =
@@ -1355,9 +1575,13 @@ function returnHalf(
 
       const duration =
         Number(
-          document.getElementById(
-            "duration"
-          ).value
+
+          document
+            .getElementById(
+              "duration"
+            )
+            .value
+
         );
 
 
@@ -1369,26 +1593,39 @@ function returnHalf(
 
         const progress =
           Math.min(
+
             1,
 
-            (now - startTime) /
+            (
+              now -
+              startTime
+            ) /
             duration
+
           );
 
 
         const eased =
-          ease(progress);
+          ease(
+            progress
+          );
 
 
         animation.x =
           start.x +
-          (end.x - start.x) *
+          (
+            end.x -
+            start.x
+          ) *
           eased;
 
 
         animation.y =
           start.y +
-          (end.y - start.y) *
+          (
+            end.y -
+            start.y
+          ) *
           eased;
 
 
@@ -1423,6 +1660,7 @@ function returnHalf(
       );
 
     }
+
   );
 
 }
@@ -1430,40 +1668,154 @@ function returnHalf(
 
 /* ============================================================
    SOUND
+
+   Background pauses while right/wrong sound plays.
+
+   After result sound finishes:
+   Background resumes from the same position.
 ============================================================ */
 
 function playSound(
   correct
 ) {
 
-  const audio =
-    correct
-      ? rightSound
-      : wrongSound;
+  return new Promise(
+
+    async resolve => {
+
+      const audio =
+        correct
+          ? rightSound
+          : wrongSound;
 
 
-  try {
+      /*
+        Pause background.
+      */
 
-    audio.pause();
+      if (backgroundSound) {
 
-    audio.currentTime =
-      0;
+        backgroundSound.pause();
+
+      }
 
 
-    audio.play()
-      .catch(
-        () => {}
+      try {
+
+        audio.pause();
+
+        audio.currentTime =
+          0;
+
+
+        await audio.play();
+
+      }
+
+      catch (error) {
+
+        console.warn(
+          "Result sound play:",
+          error
+        );
+
+
+        if (
+          backgroundSound &&
+          running
+        ) {
+
+          try {
+
+            await backgroundSound.play();
+
+          }
+
+          catch (e) {}
+
+        }
+
+
+        resolve();
+
+        return;
+
+      }
+
+
+      /*
+        Wait for result sound.
+      */
+
+      await new Promise(
+
+        soundResolve => {
+
+          if (audio.ended) {
+
+            soundResolve();
+
+            return;
+
+          }
+
+
+          const finish =
+            () => {
+
+              audio.removeEventListener(
+                "ended",
+                finish
+              );
+
+
+              soundResolve();
+
+            };
+
+
+          audio.addEventListener(
+            "ended",
+            finish
+          );
+
+        }
+
       );
 
-  }
 
-  catch (error) {
+      /*
+        Resume background.
+      */
 
-    console.log(
-      error
-    );
+      if (
+        backgroundSound &&
+        running
+      ) {
 
-  }
+        try {
+
+          await backgroundSound.play();
+
+        }
+
+        catch (error) {
+
+          console.warn(
+            "Background sound resume:",
+            error
+          );
+
+        }
+
+      }
+
+
+      resolve();
+
+    }
+
+  );
 
 }
 
@@ -1485,7 +1837,9 @@ async function showResult(
 
 
   const pos =
-    getSlot(target);
+    getSlot(
+      target
+    );
 
 
   animation.result =
@@ -1500,11 +1854,13 @@ async function showResult(
 
   animation.iconX =
     Math.min(
+
       WIDTH - 105,
 
       pos.x +
       size.width +
       115
+
     );
 
 
@@ -1513,20 +1869,31 @@ async function showResult(
     size.height / 2;
 
 
-  playSound(
+  /*
+    IMPORTANT:
+    Result sound complete hone tak wait.
+  */
+  draw();
+
+
+  await playSound(
     correct
   );
 
 
-  draw();
-
 
   await wait(
+
     Number(
-      document.getElementById(
-        "pauseDuration"
-      ).value
+
+      document
+        .getElementById(
+          "pauseDuration"
+        )
+        .value
+
     )
+
   );
 
 
@@ -1549,8 +1916,10 @@ function isMatch(
 ) {
 
   return !!(
+
     matchRules[source] &&
     matchRules[source][target]
+
   );
 
 }
@@ -1565,8 +1934,10 @@ async function runPiece(
 ) {
 
   if (
+
     !pieces[source].image ||
     pieces[source].fixed
+
   ) {
 
     return;
@@ -1574,27 +1945,27 @@ async function runPiece(
   }
 
 
-  /*
-    Target order:
-
-    A → B → C → D
-  */
-
   const targets = [
+
     "A",
     "B",
     "C",
     "D"
+
   ];
 
 
   for (
+
     const target of targets
+
   ) {
 
     if (
+
       !pieces[target].image ||
       pieces[target].fixed
+
     ) {
 
       continue;
@@ -1603,36 +1974,41 @@ async function runPiece(
 
 
     updateStatus(
+
       `${source}-right → ${target}`,
+
       "Half image moving..."
+
     );
 
 
     await animateHalf(
+
       source,
       target
+
     );
 
 
     const correct =
       isMatch(
+
         source,
         target
+
       );
 
 
     await showResult(
+
       source,
       target,
       correct
+
     );
 
 
     if (correct) {
-
-      /*
-        FIXED PERMANENTLY
-      */
 
       pieces[source].fixed =
         true;
@@ -1646,8 +2022,11 @@ async function runPiece(
 
 
       updateStatus(
+
         `${source} FIXED ✓`,
+
         "Correct match."
+
       );
 
 
@@ -1656,14 +2035,11 @@ async function runPiece(
     }
 
 
-    /*
-      WRONG:
-      return to top-right.
-    */
-
     await returnHalf(
+
       source,
       target
+
     );
 
   }
@@ -1695,14 +2071,55 @@ async function runPuzzle() {
   }
 
 
-  running = true;
+  running =
+    true;
 
-  paused = false;
+
+  paused =
+    false;
+
+
+  /*
+    Start background loop.
+  */
+
+  if (backgroundSound) {
+
+    backgroundSound.currentTime =
+      0;
+
+    backgroundSound.loop =
+      true;
+
+
+    try {
+
+      await backgroundSound.play();
+
+    }
+
+    catch (error) {
+
+      console.warn(
+        "Background sound play:",
+        error
+      );
+
+    }
+
+  }
 
 
   for (
+
     const letter of
-    ["A", "B", "C", "D"]
+    [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+
   ) {
 
     pieces[letter].fixed =
@@ -1719,18 +2136,20 @@ async function runPuzzle() {
 
 
   /*
-    FIXED SERIES:
-
     D → C → B → A
   */
 
   for (
+
     const source of SERIES
+
   ) {
 
     if (
+
       pieces[source].image &&
       !pieces[source].fixed
+
     ) {
 
       await runPiece(
@@ -1750,12 +2169,16 @@ async function runPuzzle() {
 
 
   updateStatus(
+
     "COMPLETE ✓",
+
     "D → C → B → A finished."
+
   );
 
 
-  running = false;
+  running =
+    false;
 
 }
 
@@ -1801,34 +2224,40 @@ function createRulesUI() {
 
   if (!letters.length) {
 
-    container.innerHTML =
-      `
-        <div style="
-          color:#777;
-          font-size:10px;
-          padding:8px 0;
-        ">
-          Upload PNGs to create rules.
-        </div>
-      `;
+    container.innerHTML = `
+
+      <div style="
+        color:#777;
+        font-size:10px;
+        padding:8px 0;
+      ">
+
+        Upload PNGs to create rules.
+
+      </div>
+
+    `;
 
     return;
 
   }
 
 
-  let html =
-    `
-      <table class="rule-table">
+  let html = `
 
-        <tr>
+    <table class="rule-table">
 
-          <th>Source</th>
-    `;
+      <tr>
+
+        <th>Source</th>
+
+  `;
 
 
   for (
+
     const target of letters
+
   ) {
 
     html +=
@@ -1842,17 +2271,25 @@ function createRulesUI() {
 
 
   /*
-    Rule source order:
     D C B A
   */
 
   for (
+
     const source of
-    ["D", "C", "B", "A"]
+    [
+      "D",
+      "C",
+      "B",
+      "A"
+    ]
+
   ) {
 
     if (
-      !letters.includes(source)
+      !letters.includes(
+        source
+      )
     ) {
 
       continue;
@@ -1860,50 +2297,56 @@ function createRulesUI() {
     }
 
 
-    html +=
-      `
-        <tr>
+    html += `
 
-          <th>
-            ${source}-right
-          </th>
-      `;
+      <tr>
+
+        <th>
+          ${source}-right
+        </th>
+
+    `;
 
 
     for (
+
       const target of letters
+
     ) {
 
       const correct =
         matchRules[source][target];
 
 
-      html +=
-        `
-          <td>
+      html += `
 
-            <button
-              class="rule-btn ${
-                correct
-                  ? "right"
-                  : "wrong"
-              }"
+        <td>
 
-              data-source="${source}"
+          <button
 
-              data-target="${target}"
-            >
+            class="rule-btn ${
+              correct
+                ? "right"
+                : "wrong"
+            }"
 
-              ${
-                correct
-                  ? "✓"
-                  : "✕"
-              }
+            data-source="${source}"
 
-            </button>
+            data-target="${target}"
 
-          </td>
-        `;
+          >
+
+            ${
+              correct
+                ? "✓"
+                : "✕"
+            }
+
+          </button>
+
+        </td>
+
+      `;
 
     }
 
@@ -1927,10 +2370,13 @@ function createRulesUI() {
       ".rule-btn"
     )
     .forEach(
+
       button => {
 
         button.addEventListener(
+
           "click",
+
           () => {
 
             const source =
@@ -1948,9 +2394,11 @@ function createRulesUI() {
             createRulesUI();
 
           }
+
         );
 
       }
+
     );
 
 }
@@ -1965,12 +2413,15 @@ document
     "previewBtn"
   )
   .addEventListener(
+
     "click",
+
     () => {
 
       runPuzzle();
 
     }
+
   );
 
 
@@ -1983,7 +2434,9 @@ document
     "playBtn"
   )
   .addEventListener(
+
     "click",
+
     () => {
 
       if (!running) {
@@ -1993,6 +2446,7 @@ document
       }
 
     }
+
   );
 
 
@@ -2005,7 +2459,9 @@ document
     "pauseBtn"
   )
   .addEventListener(
+
     "click",
+
     event => {
 
       paused =
@@ -2014,11 +2470,13 @@ document
 
       event.currentTarget
         .textContent =
-          paused
-            ? "▶ Resume"
-            : "‖ Pause";
+
+        paused
+          ? "▶ Resume"
+          : "‖ Pause";
 
     }
+
   );
 
 
@@ -2031,7 +2489,9 @@ document
     "resetBtn"
   )
   .addEventListener(
+
     "click",
+
     () => {
 
       running =
@@ -2042,13 +2502,50 @@ document
         false;
 
 
+      /*
+        Stop background.
+      */
+
+      if (backgroundSound) {
+
+        backgroundSound.pause();
+
+        backgroundSound.currentTime =
+          0;
+
+      }
+
+
+      /*
+        Stop result sounds.
+      */
+
+      rightSound.pause();
+
+      rightSound.currentTime =
+        0;
+
+
+      wrongSound.pause();
+
+      wrongSound.currentTime =
+        0;
+
+
       animation =
         null;
 
 
       for (
+
         const letter of
-        ["A", "B", "C", "D"]
+        [
+          "A",
+          "B",
+          "C",
+          "D"
+        ]
+
       ) {
 
         pieces[letter].fixed =
@@ -2057,21 +2554,27 @@ document
       }
 
 
-      document.getElementById(
-        "pauseBtn"
-      ).textContent =
-        "‖ Pause";
+      document
+        .getElementById(
+          "pauseBtn"
+        )
+        .textContent =
+          "‖ Pause";
 
 
       updateStatus(
+
         "Ready",
+
         "Animation reset."
+
       );
 
 
       draw();
 
     }
+
   );
 
 
@@ -2152,7 +2655,7 @@ async function exportVideo() {
 
 
   /*
-    Separate export canvas
+    Separate export canvas.
   */
 
   const exportCanvas =
@@ -2191,13 +2694,24 @@ async function exportVideo() {
     ========================================================
   */
 
-  let audioContext = null;
+  let audioContext =
+    null;
 
-  let audioDestination = null;
 
-  let rightNode = null;
+  let audioDestination =
+    null;
 
-  let wrongNode = null;
+
+  let rightNode =
+    null;
+
+
+  let wrongNode =
+    null;
+
+
+  let backgroundNode =
+    null;
 
 
   try {
@@ -2216,6 +2730,10 @@ async function exportVideo() {
         .createMediaStreamDestination();
 
 
+    /*
+      Fixed right sound.
+    */
+
     rightNode =
       audioContext
         .createMediaElementSource(
@@ -2223,12 +2741,35 @@ async function exportVideo() {
         );
 
 
+    /*
+      Fixed wrong sound.
+    */
+
     wrongNode =
       audioContext
         .createMediaElementSource(
           wrongSound
         );
 
+
+    /*
+      Background uploaded sound.
+    */
+
+    if (backgroundSound) {
+
+      backgroundNode =
+        audioContext
+          .createMediaElementSource(
+            backgroundSound
+          );
+
+    }
+
+
+    /*
+      Connect result sounds to export stream.
+    */
 
     rightNode.connect(
       audioDestination
@@ -2241,7 +2782,20 @@ async function exportVideo() {
 
 
     /*
-      Audio ko browser speaker par bhi bhejo.
+      Connect background to export stream.
+    */
+
+    if (backgroundNode) {
+
+      backgroundNode.connect(
+        audioDestination
+      );
+
+    }
+
+
+    /*
+      Browser speaker.
     */
 
     rightNode.connect(
@@ -2254,10 +2808,24 @@ async function exportVideo() {
     );
 
 
+    if (backgroundNode) {
+
+      backgroundNode.connect(
+        audioContext.destination
+      );
+
+    }
+
+
+    /*
+      Add audio track to video stream.
+    */
+
     audioDestination
       .stream
       .getAudioTracks()
       .forEach(
+
         track => {
 
           stream.addTrack(
@@ -2265,6 +2833,7 @@ async function exportVideo() {
           );
 
         }
+
       );
 
   }
@@ -2272,8 +2841,11 @@ async function exportVideo() {
   catch (error) {
 
     console.warn(
+
       "Audio stream unavailable:",
+
       error
+
     );
 
   }
@@ -2290,9 +2862,11 @@ async function exportVideo() {
 
 
   if (
+
     !MediaRecorder.isTypeSupported(
       mimeType
     )
+
   ) {
 
     mimeType =
@@ -2302,9 +2876,11 @@ async function exportVideo() {
 
 
   if (
+
     !MediaRecorder.isTypeSupported(
       mimeType
     )
+
   ) {
 
     mimeType =
@@ -2315,8 +2891,11 @@ async function exportVideo() {
 
   const recorder =
     new MediaRecorder(
+
       stream,
+
       {
+
         mimeType,
 
         videoBitsPerSecond:
@@ -2324,7 +2903,9 @@ async function exportVideo() {
 
         audioBitsPerSecond:
           128000
+
       }
+
     );
 
 
@@ -2335,8 +2916,10 @@ async function exportVideo() {
     event => {
 
       if (
+
         event.data &&
         event.data.size
+
       ) {
 
         chunks.push(
@@ -2348,7 +2931,52 @@ async function exportVideo() {
     };
 
 
-  recorder.start(100);
+  recorder.start(
+    100
+  );
+
+
+  /*
+    Start background sound
+    for export.
+  */
+
+  if (backgroundSound) {
+
+    try {
+
+      if (audioContext) {
+
+        await audioContext.resume();
+
+      }
+
+
+      backgroundSound.currentTime =
+        0;
+
+
+      backgroundSound.loop =
+        true;
+
+
+      await backgroundSound.play();
+
+    }
+
+    catch (error) {
+
+      console.warn(
+
+        "Export background sound:",
+
+        error
+
+      );
+
+    }
+
+  }
 
 
   /*
@@ -2358,8 +2986,15 @@ async function exportVideo() {
   */
 
   for (
+
     const letter of
-    ["A", "B", "C", "D"]
+    [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+
   ) {
 
     pieces[letter].fixed =
@@ -2436,12 +3071,17 @@ async function exportVideo() {
   */
 
   async function exportMove(
+
     source,
+
     target,
+
     reverse = false
+
   ) {
 
     const start =
+
       reverse
 
         ? getTargetPosition(
@@ -2454,6 +3094,7 @@ async function exportVideo() {
 
 
     const end =
+
       reverse
 
         ? getStartPosition(
@@ -2467,28 +3108,40 @@ async function exportVideo() {
 
     const duration =
       Number(
-        document.getElementById(
-          "duration"
-        ).value
+
+        document
+          .getElementById(
+            "duration"
+          )
+          .value
+
       );
 
 
     const frames =
       Math.max(
+
         1,
 
         Math.round(
+
           duration /
           1000 *
           FPS
+
         )
+
       );
 
 
     for (
+
       let frame = 0;
+
       frame <= frames;
+
       frame++
+
     ) {
 
       const p =
@@ -2507,14 +3160,28 @@ async function exportVideo() {
         target,
 
         x:
+
           start.x +
-          (end.x - start.x) *
+
+          (
+            end.x -
+            start.x
+          ) *
+
           eased,
 
+
         y:
+
           start.y +
-          (end.y - start.y) *
+
+          (
+            end.y -
+            start.y
+          ) *
+
           eased,
+
 
         result: null,
 
@@ -2529,6 +3196,7 @@ async function exportVideo() {
 
 
       progress.style.width =
+
         `${Math.min(
           95,
           p * 25
@@ -2551,19 +3219,27 @@ async function exportVideo() {
   */
 
   async function exportResult(
+
     source,
+
     target,
+
     correct
+
   ) {
 
     const size =
       getImageSize(
+
         pieces[target].image
+
       );
 
 
     const pos =
-      getSlot(target);
+      getSlot(
+        target
+      );
 
 
     animation.result =
@@ -2574,11 +3250,13 @@ async function exportVideo() {
 
     animation.iconX =
       Math.min(
+
         WIDTH - 105,
 
         pos.x +
         size.width +
         115
+
       );
 
 
@@ -2588,7 +3266,14 @@ async function exportVideo() {
 
 
     /*
-      PLAY SOUND
+      RESULT SOUND
+
+      Background pauses immediately.
+
+      Right/Wrong sound plays.
+
+      Background resumes after
+      result sound finishes.
     */
 
     const audio =
@@ -2606,50 +3291,190 @@ async function exportVideo() {
       }
 
 
+      /*
+        Pause background.
+      */
+
+      if (backgroundSound) {
+
+        backgroundSound.pause();
+
+      }
+
+
+      /*
+        Restart result sound.
+      */
+
       audio.pause();
 
       audio.currentTime =
         0;
 
 
-      await audio.play();
+      /*
+        Wait for result sound.
+      */
+
+      await new Promise(
+
+        resolve => {
+
+          let finished =
+            false;
+
+
+          const finish =
+            () => {
+
+              if (finished)
+                return;
+
+
+              finished =
+                true;
+
+
+              audio.removeEventListener(
+                "ended",
+                finish
+              );
+
+
+              resolve();
+
+            };
+
+
+          audio.addEventListener(
+            "ended",
+            finish
+          );
+
+
+          audio
+            .play()
+            .catch(
+
+              error => {
+
+                console.warn(
+
+                  "Sound play:",
+
+                  error
+
+                );
+
+
+                finish();
+
+              }
+
+            );
+
+        }
+
+      );
+
+
+      /*
+        Result sound finished.
+
+        Resume background from
+        same position.
+      */
+
+      if (backgroundSound) {
+
+        try {
+
+          await backgroundSound.play();
+
+        }
+
+        catch (error) {
+
+          console.warn(
+
+            "Export background resume:",
+
+            error
+
+          );
+
+        }
+
+      }
 
     }
 
     catch (error) {
 
       console.warn(
-        "Sound play:",
+
+        "Result audio:",
+
         error
+
       );
+
+
+      if (backgroundSound) {
+
+        try {
+
+          await backgroundSound.play();
+
+        }
+
+        catch (e) {}
+
+      }
 
     }
 
 
+    /*
+      Result icon hold time.
+    */
+
     const hold =
       Number(
-        document.getElementById(
-          "pauseDuration"
-        ).value
+
+        document
+          .getElementById(
+            "pauseDuration"
+          )
+          .value
+
       );
 
 
     const frames =
       Math.max(
+
         1,
 
         Math.round(
+
           hold /
           1000 *
           FPS
+
         )
+
       );
 
 
     for (
+
       let i = 0;
+
       i < frames;
+
       i++
+
     ) {
 
       exportDraw();
@@ -2678,7 +3503,9 @@ async function exportVideo() {
   */
 
   for (
+
     const source of SERIES
+
   ) {
 
     if (
@@ -2705,8 +3532,15 @@ async function exportVideo() {
     */
 
     for (
+
       const target of
-      ["A", "B", "C", "D"]
+      [
+        "A",
+        "B",
+        "C",
+        "D"
+      ]
+
     ) {
 
       if (
@@ -2728,41 +3562,52 @@ async function exportVideo() {
 
 
       /*
-        Move
+        Move.
       */
 
       await exportMove(
+
         source,
+
         target,
+
         false
+
       );
 
 
       /*
-        Match
+        Match.
       */
 
       const correct =
         isMatch(
+
           source,
+
           target
+
         );
 
 
       /*
-        Result
+        Result.
       */
 
       await exportResult(
+
         source,
+
         target,
+
         correct
+
       );
 
 
       /*
         RIGHT:
-        FIX IT
+        FIX IT.
       */
 
       if (correct) {
@@ -2785,13 +3630,17 @@ async function exportVideo() {
 
       /*
         WRONG:
-        Return
+        Return.
       */
 
       await exportMove(
+
         source,
+
         target,
+
         true
+
       );
 
     }
@@ -2800,7 +3649,7 @@ async function exportVideo() {
 
 
   /*
-    Final frame
+    Final frame.
   */
 
   animation =
@@ -2816,24 +3665,26 @@ async function exportVideo() {
 
 
   /*
-    STOP
+    STOP.
   */
 
   recorder.stop();
 
 
   await new Promise(
+
     resolve => {
 
       recorder.onstop =
         resolve;
 
     }
+
   );
 
 
   /*
-    CLOSE AUDIO
+    CLOSE AUDIO.
   */
 
   if (audioContext) {
@@ -2850,15 +3701,35 @@ async function exportVideo() {
 
 
   /*
+    Stop background after
+    export is complete.
+  */
+
+  if (backgroundSound) {
+
+    backgroundSound.pause();
+
+    backgroundSound.currentTime =
+      0;
+
+  }
+
+
+  /*
+    ========================================================
     CREATE WEBM
+    ========================================================
   */
 
   const blob =
     new Blob(
+
       chunks,
+
       {
         type: mimeType
       }
+
     );
 
 
@@ -2894,6 +3765,7 @@ async function exportVideo() {
 
 
   setTimeout(
+
     () => {
 
       URL.revokeObjectURL(
@@ -2901,7 +3773,9 @@ async function exportVideo() {
       );
 
     },
+
     5000
+
   );
 
 
@@ -2922,12 +3796,19 @@ async function exportVideo() {
 
 
   /*
-    Reset preview state
+    Reset preview state.
   */
 
   for (
+
     const letter of
-    ["A", "B", "C", "D"]
+    [
+      "A",
+      "B",
+      "C",
+      "D"
+    ]
+
   ) {
 
     pieces[letter].fixed =
