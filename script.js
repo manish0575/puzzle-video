@@ -3264,7 +3264,7 @@ async function exportVideo() {
       pos.y +
       size.height / 2;
 
-
+exportDraw();
     /*
       RESULT SOUND
 
